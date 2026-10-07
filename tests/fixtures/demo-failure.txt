@@ -1,4 +1,14 @@
 Gate at Dusk — offline failure demonstration
+
+You are Lea, a courier wearing a borrowed official uniform. At dusk, you arrive
+outside the royal gate to recover a missing ledger. Sen, the archivist who once
+saved your life, may be able to help.
+
+Your mission is to recover the ledger before nightfall (tick 20) and bring it
+safely back outside. Oren guards the entrance, and you are not expected: your
+first challenge is to get past him. Describe what you say or do in plain
+English. Actions advance time; /look and /inventory do not.
+
 > wait
 You wait as dusk deepens.
 > wait

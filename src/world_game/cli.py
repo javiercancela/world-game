@@ -140,6 +140,12 @@ def repl(
         emit(text, output_stream, no_color)
         repo.delivered(batch_id)
     emit("Gate at Dusk. /help lists commands; /quit saves and exits.", output_stream, no_color)
+    if repo.load().world_version == 0 and repo.pending() is None:
+        introduction = coordinator.package.dialogue.lines.get("introduction")
+        if introduction is None:
+            # Older saves pin a story package without an introduction.
+            introduction = load_story().dialogue.lines["introduction"]
+        emit("\n" + introduction + "\n", output_stream, no_color)
     console = Console(file=output_stream, no_color=no_color)
     with (
         console.status("Describing…")
@@ -357,6 +363,7 @@ def run_demo(
         dice = ScriptedDice(fixture[branch]["dice"])
         c = Coordinator(repo, ScriptedModel(), dice)
         emit(f"Gate at Dusk — offline {branch} demonstration", output, no_color)
+        emit("\n" + package.dialogue.lines["introduction"] + "\n", output, no_color)
         for line in fixture[branch]["inputs"]:
             if line == "@reload":
                 pending: PendingResolution | None = repo.pending()

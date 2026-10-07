@@ -162,7 +162,7 @@
             <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/aspects.json"><code>aspects.json</code></a></td><td>ID-keyed object → <code>dict[str, Aspect]</code></td><td>Six initial character aspects: five for Lea and Oren’s hidden concern.</td></tr>
             <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/quests.json"><code>quests.json</code></a></td><td>Array → <code>list[QuestDefinition]</code></td><td>The allowed stages and terminal stages of the ledger quest.</td></tr>
             <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/scenes.json"><code>scenes.json</code></a></td><td>Array → <code>list[SceneDefinition]</code></td><td>Three scene definitions with locations and stakes.</td></tr>
-            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/dialogue.json"><code>dialogue.json</code></a></td><td>Object → <code>Dialogue</code></td><td>A versioned catalog of ten authored lines; currently loaded and persisted but not looked up by gameplay code.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/dialogue.json"><code>dialogue.json</code></a></td><td>Object → <code>Dialogue</code></td><td>A versioned catalog of eleven authored entries. The CLI reads the introduction; the other lines remain duplicated in engine code.</td></tr>
             <tr><td><code>fixtures/demo.json</code></td><td>Object with <code>success</code> and <code>failure</code></td><td>Offline demo input sequences and scripted dice.</td></tr>
             <tr><td><code>fixtures/eval-cases.json</code></td><td>Array of 30 case objects</td><td>Live interpreter evaluation expectations and disclosure checks.</td></tr>
           </tbody>
@@ -757,6 +757,7 @@ margin ≥ 3    → success with style</code></pre>
         <pre><code class="language-json" data-json-source="dialogue.json" data-json-pointer="">{
   "version": "dialogue-v1",
   "lines": {
+    "introduction": "You are Lea, a courier wearing a borrowed official uniform. At dusk, you arrive outside the royal gate to recover a missing ledger. Sen, the archivist who once saved your life, may be able to help.\n\nYour mission is to recover the ledger before nightfall (tick 20) and bring it safely back outside. Oren guards the entrance, and you are not expected: your first challenge is to get past him. Describe what you say or do in plain English. Actions advance time; /look and /inventory do not.",
     "gate_success": "Oren: The seal looks proper. Go through.",
     "gate_failure": "Oren: I need new evidence before I can admit you.",
     "collateral": "Oren: Leave the seal with me as collateral, and I will admit you.",
@@ -769,7 +770,8 @@ margin ≥ 3    → success with style</code></pre>
     "failure": "The ledger mission has failed."
   }
 }</code></pre>
-        <div class="note limit"><strong>Current wiring: catalog stored, lines duplicated in code.</strong><p>The loader validates this file and includes it in package persistence and hashing. Gameplay does not currently read <code>package.dialogue.lines</code>; authored lines and fallback output are literals in <code>engine/actions.py</code>, <code>engine/scheduler.py</code>, and related engine code. Editing this file changes the package content and hash, but does not automatically change the spoken line. To make it authoritative, add catalog lookups at the corresponding emission sites.</p></div>
+        <p>The CLI reads <code>lines.introduction</code> before describing a fresh campaign’s opening scene, and at the start of each demo branch. It introduces Lea, her location, her connection to Sen, and the ledger mission and deadline. Campaigns with committed actions or a pending choice skip it; older fresh saves without the entry use the bundled introduction.</p>
+        <div class="note limit"><strong>Current wiring: introduction uses the catalog; other lines remain duplicated in code.</strong><p>The loader validates this file and includes it in package persistence and hashing. Apart from the introduction, authored lines and fallback output remain literals in <code>engine/actions.py</code>, <code>engine/scheduler.py</code>, and related engine code. Editing those catalog entries changes the package content and hash, but does not automatically change the spoken line. To make them authoritative, add catalog lookups at the corresponding emission sites.</p></div>
         <h3>fixtures/demo.json</h3>
         <p>This has two branches, <code>success</code> and <code>failure</code>. Each contains a <code>dice</code> array and an ordered <code>inputs</code> array. Each scripted roll is four integers from −1 to +1. The success branch uses <code>[-1, -1, 0, 0]</code> for its first roll, reloads a saved pending choice, invokes Lea’s concept aspect, and completes the mission. The failure branch waits 20 times to trigger the ledger removal.</p>
         <p><code>@reload</code> is a demo runner directive that closes and reopens the database at the post-roll choice. It is not a normal player action or a story resource directive. Inputs such as <code>/pass</code>, <code>/invoke</code>, and <code>/choose</code> are executed by the CLI command path.</p>
@@ -822,6 +824,7 @@ state.ruleset_ref = "fate-condensed-cli-v1@" + digest(package.rules)</code></pre
             <tr><td>Move the ledger-removal time</td><td><code>entities.json → scheduled_effects.schedule:deadline.due_tick</code>.</td><td><span class="tag">Data</span></td></tr>
             <tr><td>Add a passive item in an existing room</td><td>Add an item entity with a unique ID, correct components, placement, and useful name/aliases. Existing visibility and take-item logic can handle it.</td><td><span class="tag">Data</span> Live interpretation may recognize it; scripted vocabulary can require code.</td></tr>
             <tr><td>Add a new secret and reveal it in conversation</td><td>Proposition/knowledge/aspect data plus an authored disclosure branch and any prompt/parser changes.</td><td><span class="tag limited">Data + code</span></td></tr>
+            <tr><td>Revise the opening introduction</td><td><code>dialogue.json → lines.introduction</code>.</td><td><span class="tag">Data</span></td></tr>
             <tr><td>Change a spoken fallback line</td><td>The engine’s utterance emission site; optionally implement a <code>dialogue.lines</code> lookup.</td><td><span class="tag limited">Code currently required</span></td></tr>
             <tr><td>Add a new location, NPC interaction, quest, or offer type</td><td>Data plus scene mapping, quest/handler/offer logic, parsing, and validation as needed.</td><td><span class="tag limited">Data + code</span></td></tr>
             <tr><td>Add a new action, stunt, or scheduled handler</td><td>Extend the relevant literal types, registries, rule selector, planning/effects, reducer where needed, prompts, and meaningful tests.</td><td><span class="tag limited">Engine extension</span></td></tr>
@@ -899,7 +902,7 @@ uv run pytest tests/unit/test_world.py tests/integration/test_adventure.py</code
             <tr><td><code>check kind and action/skill disagree</code></td><td>No-roll checks need null action/skill; roll checks require both.</td></tr>
             <tr><td><code>missing profile</code> / <code>invalid actor/profile visibility</code></td><td>Resolve the actor’s profile reference and make <code>private_known_by</code> contain exactly its actor.</td></tr>
             <tr><td><code>grounding is false</code></td><td>Restore the supporting canonical record or component condition, or change/remove the unsupported aspect.</td></tr>
-            <tr><td>A dialogue edit has no visible effect</td><td>Update the current engine emission site or wire it to the catalog; also test a campaign using the edited package.</td></tr>
+            <tr><td>A dialogue edit has no visible effect</td><td>The introduction is read from the catalog for fresh campaigns. For other lines, update the current engine emission site or wire it to the catalog; also test a campaign using the edited package.</td></tr>
             <tr><td>Edited story data does not appear in a saved game</td><td>The save pins its package. Start a fresh campaign rather than expecting a filesystem edit to migrate it.</td></tr>
           </tbody>
         </table></div>

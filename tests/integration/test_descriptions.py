@@ -102,12 +102,22 @@ def test_description_updates_after_gate_opens_and_player_moves(game):
     assert sum(role == "describer" for role, _ in model.calls) == 3
 
 
-def test_repl_starts_with_scene_prose_and_separate_inventory(game):
+def test_repl_starts_with_introduction_scene_prose_and_separate_inventory(game):
     c = game([])
+    before = digest(c.repository.load())
     out = io.StringIO()
     repl(c, io.StringIO("/inventory\n/quit\n"), out, True)
     lines = out.getvalue().splitlines()
     scene = " ".join(out.getvalue().split("Inventory:")[0].split())
+    assert "You are Lea, a courier wearing a borrowed official uniform." in scene
+    assert "outside the royal gate" in scene
+    assert "recover the ledger before nightfall (tick 20)" in scene
+    assert "Sen, the archivist who once saved your life" in scene
+    assert "your first challenge is to get past him" in scene
+    assert "Actions advance time; /look and /inventory do not." in scene
+    assert out.getvalue().index("You are Lea") < out.getvalue().index("Dusk gathers")
     assert "Oren" in scene and "gate is closed" in scene
     assert "Lockpicks" not in scene and "unlocked" not in scene
     assert "Inventory: Lockpicks, Royal Seal" in lines
+    assert digest(c.repository.load()) == before
+    assert c.repository.pending() is None

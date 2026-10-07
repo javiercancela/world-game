@@ -1,6 +1,7 @@
 {
   "version": "dialogue-v1",
   "lines": {
+    "introduction": "You are Lea, a courier wearing a borrowed official uniform. At dusk, you arrive outside the royal gate to recover a missing ledger. Sen, the archivist who once saved your life, may be able to help.\n\nYour mission is to recover the ledger before nightfall (tick 20) and bring it safely back outside. Oren guards the entrance, and you are not expected: your first challenge is to get past him. Describe what you say or do in plain English. Actions advance time; /look and /inventory do not.",
     "gate_success": "Oren: The seal looks proper. Go through.",
     "gate_failure": "Oren: I need new evidence before I can admit you.",
     "collateral": "Oren: Leave the seal with me as collateral, and I will admit you.",

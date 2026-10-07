@@ -273,6 +273,7 @@ def test_real_cli_demos_and_eof_resume(tmp_path, game):
     out = io.StringIO()
     success, failure = run_demo(tmp_path, out, True)
     assert "Saved and reloaded" in out.getvalue()
+    assert out.getvalue().count("You are Lea") == 2
     for path, expected in [(success, "success"), (failure, "failure")]:
         r = SQLiteRepository(path)
         assert r.replay().quests["recover_ledger"].terminal_result == expected
@@ -283,3 +284,9 @@ def test_real_cli_demos_and_eof_resume(tmp_path, game):
     assert c.repository.pending().actor_dice == [-1, -1, 0, 0]
     assert c.repository.load().clock.tick == 0
     assert "Saved. Goodbye." in out.getvalue() and "\x1b[" not in out.getvalue()
+    assert "You are Lea" in out.getvalue()
+    resumed = io.StringIO()
+    repl(c, io.StringIO("/quit\n"), resumed, True)
+    assert "You are Lea" not in resumed.getvalue()
+    assert "Pending interaction" in resumed.getvalue()
+    assert c.repository.pending().actor_dice == [-1, -1, 0, 0]

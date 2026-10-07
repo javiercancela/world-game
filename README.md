@@ -82,6 +82,8 @@ Both a key and an explicit model supporting Responses API Structured Outputs are
 
 ## Play and durable choices
 
+Fresh campaigns open with a brief introduction to Lea, her surroundings, the ledger mission, and the dusk deadline before describing the scene. Resuming after an action or with a pending choice skips the introduction.
+
 `/help` lists the commands. Read-only commands are `/look`, `/inventory`, `/sheet`, `/aspects`, `/journal`, `/history`, and `/save`. They cost no game time. `/look` and the opening scene use a dedicated description agent, with a cached result for an unchanged view and factual prose as a fallback. Its context contains only the current surroundings, nearby people, visible objects, and open/closed doors; it excludes the player's inventory, remote room details, knowledge, and hidden lock state. `/inventory` lists carried items separately. The other read-only commands make no provider calls. Descriptions leave pending choices and action budgets untouched.
 
 When a roll is pending, use `/pass`, `/choose <number|option-id>`, or `/invoke <aspect-id> <bonus|reroll>`. The invoke wrapper spends a controlled free use first when available. Exact, unique option labels also work as ordinary input. `/concede` offers authored surrender terms before the next conflict roll.
