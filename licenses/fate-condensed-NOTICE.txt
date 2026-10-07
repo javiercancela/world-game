@@ -1,0 +1,13 @@
+This work is based on Fate Condensed (found at http://www.faterpg.com/), a product of Evil Hat Productions, LLC, developed, authored, and edited by PK Sullivan, Lara Turner, Leonard Balsera, Fred Hicks, Richard Bellingham, Robert Hanz, Ryan Macklin, and Sophie Lagacé, and licensed for our use under the Creative Commons Attribution 3.0 Unported license (http://creativecommons.org/licenses/by/3.0/).
+
+Source: Fate-Condensed-SRD-CC-BY.html from the official CC-BY SRDs download
+https://fate-srd.com/downloads/CC-BY-SRDs.zip (retrieved 4 October 2026).
+License: https://creativecommons.org/licenses/by/3.0/
+
+Adaptation: fate-condensed-cli-v1 changes the skill list and allocation, replaces
+Physique with Athletics for physical stress, and supplies three authored stunts.
+It uses deterministic NPC spending, a shared GM scene pool, no NPC invokes on
+static checks, event compels only, finite harm descriptions and concession losses,
+and explicit computer-game scene/session boundaries and consequence recovery.
+The Gate at Dusk adventure and software are original work under the repository's
+MIT license. This project uses no Fate logos or artwork. No endorsement is implied.

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "quest:recover_ledger",
+    "stages": [
+      "active",
+      "acquired",
+      "completed",
+      "failed"
+    ],
+    "terminal_stages": [
+      "completed",
+      "failed"
+    ]
+  }
+]

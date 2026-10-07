@@ -1,0 +1,657 @@
+{
+  "schema_version": 1,
+  "campaign_id": "initial",
+  "world_version": 0,
+  "ruleset_ref": "fate-condensed-cli-v1",
+  "story_ref": "gate-at-dusk@1.0",
+  "clock": {
+    "player_turn": 0,
+    "tick": 0
+  },
+  "rng": {
+    "algorithm": "sha256-counter-v1",
+    "seed": "0000000000000000000000000000000000000000000000000000000000000000",
+    "counter": 0
+  },
+  "next_id": 1,
+  "entities": {
+    "location:gatehouse": {
+      "id": "location:gatehouse",
+      "kind": "location",
+      "identity": {
+        "name": "Gatehouse",
+        "aliases": [
+          "gatehouse",
+          "outside"
+        ],
+        "description": "Dusk gathers at the royal gate."
+      },
+      "placement": null,
+      "location": {
+        "reachable": true
+      },
+      "portal": null,
+      "item": null,
+      "actor": null,
+      "fate": null
+    },
+    "location:courtyard": {
+      "id": "location:courtyard",
+      "kind": "location",
+      "identity": {
+        "name": "Courtyard",
+        "aliases": [
+          "courtyard"
+        ],
+        "description": "An arcade leads to the records office."
+      },
+      "placement": null,
+      "location": {
+        "reachable": true
+      },
+      "portal": null,
+      "item": null,
+      "actor": null,
+      "fate": null
+    },
+    "location:records": {
+      "id": "location:records",
+      "kind": "location",
+      "identity": {
+        "name": "Records Office",
+        "aliases": [
+          "records",
+          "records office"
+        ],
+        "description": "Shelves of relief accounts line the room."
+      },
+      "placement": null,
+      "location": {
+        "reachable": true
+      },
+      "portal": null,
+      "item": null,
+      "actor": null,
+      "fate": null
+    },
+    "portal:gate": {
+      "id": "portal:gate",
+      "kind": "portal",
+      "identity": {
+        "name": "Gate",
+        "aliases": [
+          "gate"
+        ],
+        "description": ""
+      },
+      "placement": null,
+      "location": null,
+      "portal": {
+        "endpoints": [
+          "location:gatehouse",
+          "location:courtyard"
+        ],
+        "open": false,
+        "locked": false,
+        "key_item_ids": [],
+        "tags": []
+      },
+      "item": null,
+      "actor": null,
+      "fate": null
+    },
+    "portal:records_door": {
+      "id": "portal:records_door",
+      "kind": "portal",
+      "identity": {
+        "name": "Records Door",
+        "aliases": [
+          "records door",
+          "door"
+        ],
+        "description": ""
+      },
+      "placement": null,
+      "location": null,
+      "portal": {
+        "endpoints": [
+          "location:courtyard",
+          "location:records"
+        ],
+        "open": false,
+        "locked": true,
+        "key_item_ids": [
+          "item:records_key"
+        ],
+        "tags": [
+          "mechanical_lock"
+        ]
+      },
+      "item": null,
+      "actor": null,
+      "fate": null
+    },
+    "item:royal_seal": {
+      "id": "item:royal_seal",
+      "kind": "item",
+      "identity": {
+        "name": "Royal Seal",
+        "aliases": [
+          "royal seal",
+          "seal"
+        ],
+        "description": ""
+      },
+      "placement": {
+        "container_id": "actor:lea"
+      },
+      "location": null,
+      "portal": null,
+      "item": {
+        "tags": [
+          "credential"
+        ],
+        "quantity": 1
+      },
+      "actor": null,
+      "fate": null
+    },
+    "item:lockpicks": {
+      "id": "item:lockpicks",
+      "kind": "item",
+      "identity": {
+        "name": "Lockpicks",
+        "aliases": [
+          "lockpicks",
+          "lockpicks"
+        ],
+        "description": ""
+      },
+      "placement": {
+        "container_id": "actor:lea"
+      },
+      "location": null,
+      "portal": null,
+      "item": {
+        "tags": [
+          "lockpick"
+        ],
+        "quantity": 1
+      },
+      "actor": null,
+      "fate": null
+    },
+    "item:records_key": {
+      "id": "item:records_key",
+      "kind": "item",
+      "identity": {
+        "name": "Records Key",
+        "aliases": [
+          "records key",
+          "key"
+        ],
+        "description": ""
+      },
+      "placement": {
+        "container_id": "actor:sen"
+      },
+      "location": null,
+      "portal": null,
+      "item": {
+        "tags": [
+          "key"
+        ],
+        "quantity": 1
+      },
+      "actor": null,
+      "fate": null
+    },
+    "item:ledger": {
+      "id": "item:ledger",
+      "kind": "item",
+      "identity": {
+        "name": "Missing Ledger",
+        "aliases": [
+          "ledger",
+          "ledger"
+        ],
+        "description": ""
+      },
+      "placement": {
+        "container_id": "location:records"
+      },
+      "location": null,
+      "portal": null,
+      "item": {
+        "tags": [
+          "ledger"
+        ],
+        "quantity": 1
+      },
+      "actor": null,
+      "fate": null
+    },
+    "container:archive": {
+      "id": "container:archive",
+      "kind": "container",
+      "identity": {
+        "name": "Sealed Archive",
+        "aliases": [],
+        "description": "An unreachable offscreen archive."
+      },
+      "placement": null,
+      "location": null,
+      "portal": null,
+      "item": null,
+      "actor": null,
+      "fate": null
+    },
+    "actor:lea": {
+      "id": "actor:lea",
+      "kind": "actor",
+      "identity": {
+        "name": "Lea",
+        "aliases": [
+          "lea"
+        ],
+        "description": "A courier in an official-looking uniform."
+      },
+      "placement": {
+        "container_id": "location:gatehouse"
+      },
+      "location": null,
+      "portal": null,
+      "item": null,
+      "actor": {
+        "profile_ref": "profile:lea",
+        "goal_ids": [
+          "recover_ledger"
+        ],
+        "status": "active",
+        "disposition": 0
+      },
+      "fate": {
+        "skills": {
+          "athletics": 2,
+          "fight": 0,
+          "notice": 3,
+          "investigate": 1,
+          "influence": 3,
+          "deceive": 4,
+          "stealth": 2,
+          "craft": 1,
+          "will": 2
+        },
+        "stunt_ids": [
+          "official_bearing",
+          "read_the_room",
+          "quick_hands"
+        ],
+        "refresh": 3,
+        "fate_points": 3,
+        "physical_stress_used": 0,
+        "mental_stress_used": 0,
+        "consequence_slots": {
+          "mild": null,
+          "moderate": null,
+          "severe": null
+        },
+        "stress_capacity_override": null,
+        "has_consequences": true
+      }
+    },
+    "actor:oren": {
+      "id": "actor:oren",
+      "kind": "actor",
+      "identity": {
+        "name": "Oren",
+        "aliases": [
+          "oren"
+        ],
+        "description": "A guard watching the gate."
+      },
+      "placement": {
+        "container_id": "location:gatehouse"
+      },
+      "location": null,
+      "portal": null,
+      "item": null,
+      "actor": {
+        "profile_ref": "profile:oren",
+        "goal_ids": [
+          "authorized_visitors"
+        ],
+        "status": "active",
+        "disposition": 0
+      },
+      "fate": {
+        "skills": {
+          "notice": 2,
+          "will": 2,
+          "fight": 2,
+          "athletics": 1,
+          "influence": 1
+        },
+        "stunt_ids": [],
+        "refresh": 0,
+        "fate_points": 0,
+        "physical_stress_used": 0,
+        "mental_stress_used": 0,
+        "consequence_slots": {
+          "mild": null,
+          "moderate": null,
+          "severe": null
+        },
+        "stress_capacity_override": 3,
+        "has_consequences": false
+      }
+    },
+    "actor:sen": {
+      "id": "actor:sen",
+      "kind": "actor",
+      "identity": {
+        "name": "Sen",
+        "aliases": [
+          "sen"
+        ],
+        "description": "An archivist with ink-stained fingers."
+      },
+      "placement": {
+        "container_id": "location:courtyard"
+      },
+      "location": null,
+      "portal": null,
+      "item": null,
+      "actor": {
+        "profile_ref": "profile:sen",
+        "goal_ids": [
+          "preserve_ledger"
+        ],
+        "status": "active",
+        "disposition": 0
+      },
+      "fate": {
+        "skills": {
+          "notice": 2,
+          "will": 2,
+          "influence": 2,
+          "investigate": 3
+        },
+        "stunt_ids": [],
+        "refresh": 0,
+        "fate_points": 0,
+        "physical_stress_used": 0,
+        "mental_stress_used": 0,
+        "consequence_slots": {
+          "mild": null,
+          "moderate": null,
+          "severe": null
+        },
+        "stress_capacity_override": 3,
+        "has_consequences": false
+      }
+    }
+  },
+  "propositions": {
+    "proposition:lea_expected": {
+      "id": "proposition:lea_expected",
+      "predicate": "expected",
+      "arguments": {
+        "subject_id": "actor:lea",
+        "object_id": null,
+        "value": null
+      },
+      "truth": "false",
+      "source": {
+        "kind": "story",
+        "id": "gate-at-dusk@1.0"
+      },
+      "discovery_policy_id": "discovery:lea_expected"
+    },
+    "proposition:ledger_incriminates_deputy": {
+      "id": "proposition:ledger_incriminates_deputy",
+      "predicate": "incriminates",
+      "arguments": {
+        "subject_id": "item:ledger",
+        "object_id": null,
+        "value": null
+      },
+      "truth": "true",
+      "source": {
+        "kind": "story",
+        "id": "gate-at-dusk@1.0"
+      },
+      "discovery_policy_id": "discovery:ledger_incriminates_deputy"
+    },
+    "proposition:oren_fears_blame": {
+      "id": "proposition:oren_fears_blame",
+      "predicate": "fears",
+      "arguments": {
+        "subject_id": "actor:oren",
+        "object_id": null,
+        "value": null
+      },
+      "truth": "true",
+      "source": {
+        "kind": "story",
+        "id": "gate-at-dusk@1.0"
+      },
+      "discovery_policy_id": "discovery:oren_fears_blame"
+    }
+  },
+  "beliefs": {},
+  "knowledge": {
+    "actor:lea": {
+      "known_entity_ids": [
+        "actor:lea",
+        "actor:oren",
+        "actor:sen",
+        "item:lockpicks",
+        "item:royal_seal",
+        "location:gatehouse",
+        "portal:gate"
+      ],
+      "known_record_ids": [
+        "proposition:lea_expected"
+      ],
+      "observations": [
+        {
+          "record_id": "actor:lea",
+          "field": "presence",
+          "value": "location:gatehouse",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "actor:oren",
+          "field": "presence",
+          "value": "location:gatehouse",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "item:lockpicks",
+          "field": "presence",
+          "value": "actor:lea",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "item:royal_seal",
+          "field": "presence",
+          "value": "actor:lea",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "location:gatehouse",
+          "field": "presence",
+          "value": "location:gatehouse",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "portal:gate",
+          "field": "presence",
+          "value": "portal:gate",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        }
+      ]
+    },
+    "actor:oren": {
+      "known_entity_ids": [
+        "actor:lea",
+        "actor:oren",
+        "location:gatehouse",
+        "portal:gate"
+      ],
+      "known_record_ids": [
+        "proposition:oren_fears_blame"
+      ],
+      "observations": [
+        {
+          "record_id": "actor:lea",
+          "field": "presence",
+          "value": "location:gatehouse",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "actor:oren",
+          "field": "presence",
+          "value": "location:gatehouse",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "location:gatehouse",
+          "field": "presence",
+          "value": "location:gatehouse",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "portal:gate",
+          "field": "presence",
+          "value": "portal:gate",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        }
+      ]
+    },
+    "actor:sen": {
+      "known_entity_ids": [
+        "actor:lea",
+        "actor:sen",
+        "item:records_key",
+        "location:courtyard",
+        "portal:gate",
+        "portal:records_door"
+      ],
+      "known_record_ids": [
+        "proposition:ledger_incriminates_deputy"
+      ],
+      "observations": [
+        {
+          "record_id": "actor:sen",
+          "field": "presence",
+          "value": "location:courtyard",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "item:records_key",
+          "field": "presence",
+          "value": "actor:sen",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "location:courtyard",
+          "field": "presence",
+          "value": "location:courtyard",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "portal:gate",
+          "field": "presence",
+          "value": "portal:gate",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        },
+        {
+          "record_id": "portal:records_door",
+          "field": "presence",
+          "value": "portal:records_door",
+          "source_event_id": "story:initial",
+          "acquired_tick": 0
+        }
+      ]
+    }
+  },
+  "relationships": {
+    "relationship:sen_lea": {
+      "id": "relationship:sen_lea",
+      "from_id": "actor:sen",
+      "to_id": "actor:lea",
+      "kind": "trust",
+      "value": 1,
+      "source": {
+        "kind": "story",
+        "id": "gate-at-dusk@1.0"
+      }
+    }
+  },
+  "aspects": {},
+  "conversations": {},
+  "offers": {},
+  "commitments": {},
+  "quests": {
+    "recover_ledger": {
+      "id": "recover_ledger",
+      "definition_ref": "quest:recover_ledger",
+      "stage": "active",
+      "completed_objective_ids": [],
+      "terminal_result": null
+    }
+  },
+  "scheduled_effects": {
+    "schedule:deadline": {
+      "id": "schedule:deadline",
+      "due_tick": 20,
+      "priority": 0,
+      "handler_id": "ledger_deadline",
+      "args": {
+        "actor_id": null,
+        "item_id": "item:ledger",
+        "portal_id": null,
+        "quest_id": "recover_ledger"
+      },
+      "status": "pending"
+    }
+  },
+  "scene": {
+    "id": "scene:gate:1",
+    "definition_ref": "scene:gate",
+    "sequence": 1,
+    "participant_ids": [
+      "actor:lea",
+      "actor:oren"
+    ],
+    "gm_fate_pool": 1,
+    "deferred_awards": [],
+    "started_tick": 0
+  },
+  "session": {
+    "id": "session:1",
+    "sequence": 1,
+    "completed_scene_ids": [],
+    "applied_boundary_ids": [],
+    "npc_carryover_credits": {},
+    "finished": false
+  },
+  "conflict": null,
+  "applied_trigger_ids": []
+}

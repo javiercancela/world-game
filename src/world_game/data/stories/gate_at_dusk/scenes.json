@@ -1,0 +1,23 @@
+[
+  {
+    "id": "scene:gate",
+    "location_ids": [
+      "location:gatehouse"
+    ],
+    "stakes": "Recover the ledger; defeat means capture."
+  },
+  {
+    "id": "scene:courtyard",
+    "location_ids": [
+      "location:courtyard"
+    ],
+    "stakes": "Recover the ledger; defeat means capture."
+  },
+  {
+    "id": "scene:records",
+    "location_ids": [
+      "location:records"
+    ],
+    "stakes": "Recover the ledger; defeat means capture."
+  }
+]

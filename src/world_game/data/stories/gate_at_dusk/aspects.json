@@ -1,0 +1,187 @@
+{
+  "aspect:lea:concept": {
+    "id": "aspect:lea:concept",
+    "text": "Borrowed Uniform, Convincing Manner",
+    "kind": "character",
+    "subject_id": "actor:lea",
+    "scope": {
+      "kind": "character",
+      "id": "actor:lea"
+    },
+    "grounding": {
+      "kind": "authored_trait",
+      "id": "trait:concept"
+    },
+    "known_by": [
+      "actor:lea"
+    ],
+    "free_invokes": {},
+    "lifetime": {
+      "kind": "persistent"
+    },
+    "source": {
+      "kind": "story",
+      "id": "gate-at-dusk@1.0"
+    },
+    "relevance_tags": [
+      "gain_entry",
+      "social",
+      "deceive"
+    ],
+    "recovery": null
+  },
+  "aspect:lea:trouble": {
+    "id": "aspect:lea:trouble",
+    "text": "Cannot Leave a Debt Unpaid",
+    "kind": "character",
+    "subject_id": "actor:lea",
+    "scope": {
+      "kind": "character",
+      "id": "actor:lea"
+    },
+    "grounding": {
+      "kind": "authored_trait",
+      "id": "trait:trouble"
+    },
+    "known_by": [
+      "actor:lea"
+    ],
+    "free_invokes": {},
+    "lifetime": {
+      "kind": "persistent"
+    },
+    "source": {
+      "kind": "story",
+      "id": "gate-at-dusk@1.0"
+    },
+    "relevance_tags": [
+      "promise",
+      "social"
+    ],
+    "recovery": null
+  },
+  "aspect:lea:relationship": {
+    "id": "aspect:lea:relationship",
+    "text": "Sen Once Saved My Life",
+    "kind": "character",
+    "subject_id": "actor:lea",
+    "scope": {
+      "kind": "character",
+      "id": "actor:lea"
+    },
+    "grounding": {
+      "kind": "authored_trait",
+      "id": "trait:relationship"
+    },
+    "known_by": [
+      "actor:lea"
+    ],
+    "free_invokes": {},
+    "lifetime": {
+      "kind": "persistent"
+    },
+    "source": {
+      "kind": "story",
+      "id": "gate-at-dusk@1.0"
+    },
+    "relevance_tags": [
+      "sen",
+      "social"
+    ],
+    "recovery": null
+  },
+  "aspect:lea:another_way": {
+    "id": "aspect:lea:another_way",
+    "text": "Always Looking for Another Way In",
+    "kind": "character",
+    "subject_id": "actor:lea",
+    "scope": {
+      "kind": "character",
+      "id": "actor:lea"
+    },
+    "grounding": {
+      "kind": "authored_trait",
+      "id": "trait:another_way"
+    },
+    "known_by": [
+      "actor:lea"
+    ],
+    "free_invokes": {},
+    "lifetime": {
+      "kind": "persistent"
+    },
+    "source": {
+      "kind": "story",
+      "id": "gate-at-dusk@1.0"
+    },
+    "relevance_tags": [
+      "access",
+      "move",
+      "advantage"
+    ],
+    "recovery": null
+  },
+  "aspect:lea:steady_hand": {
+    "id": "aspect:lea:steady_hand",
+    "text": "A Steady Hand Under Pressure",
+    "kind": "character",
+    "subject_id": "actor:lea",
+    "scope": {
+      "kind": "character",
+      "id": "actor:lea"
+    },
+    "grounding": {
+      "kind": "authored_trait",
+      "id": "trait:steady_hand"
+    },
+    "known_by": [
+      "actor:lea"
+    ],
+    "free_invokes": {},
+    "lifetime": {
+      "kind": "persistent"
+    },
+    "source": {
+      "kind": "story",
+      "id": "gate-at-dusk@1.0"
+    },
+    "relevance_tags": [
+      "lock",
+      "fight",
+      "defend",
+      "treatment"
+    ],
+    "recovery": null
+  },
+  "aspect:oren:blame": {
+    "id": "aspect:oren:blame",
+    "text": "Fear of Being Blamed",
+    "kind": "character",
+    "subject_id": "actor:oren",
+    "scope": {
+      "kind": "character",
+      "id": "actor:oren"
+    },
+    "grounding": {
+      "kind": "proposition",
+      "id": "proposition:oren_fears_blame"
+    },
+    "known_by": [
+      "actor:oren"
+    ],
+    "free_invokes": {},
+    "lifetime": {
+      "kind": "persistent"
+    },
+    "source": {
+      "kind": "story",
+      "id": "gate-at-dusk@1.0"
+    },
+    "relevance_tags": [
+      "concern",
+      "social",
+      "gain_entry"
+    ],
+    "recovery": null
+  }
+}

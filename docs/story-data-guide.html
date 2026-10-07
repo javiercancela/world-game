@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="A detailed guide to world-game story packages: JSON files, references, world state, knowledge, Fate rules, loading, validation, persistence, and authoring limits.">
+  <title>world-game · Story data guide</title>
+  <style>
+    :root { --paper:#faf9f5; --surface:#fffefa; --ink:#22352f; --muted:#596960; --line:#d8dfd7; --accent:#256653; --soft:#eaf1e9; --amber:#835016; --amber-soft:#f6eddd; --code:#edf0e9; }
+    @media (prefers-color-scheme:dark) { :root { --paper:#17221e; --surface:#1e2c26; --ink:#edf1e8; --muted:#b8c5bb; --line:#3b5144; --accent:#a1d5b6; --soft:#283d30; --amber:#edd098; --amber-soft:#3a3123; --code:#2a3930; } }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:24px; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.7 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    a { color:var(--accent); text-underline-offset:3px; }
+    a:hover { text-decoration-thickness:2px; }
+    :focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+    .skip { position:absolute; top:-80px; left:16px; padding:10px 16px; background:var(--surface); z-index:5; }
+    .skip:focus { top:12px; }
+    .layout { max-width:1390px; margin:auto; display:grid; grid-template-columns:235px minmax(0,1fr); gap:64px; padding:46px 44px 72px; }
+    aside { position:sticky; top:28px; align-self:start; max-height:calc(100vh - 56px); overflow-y:auto; }
+    .brand { font-size:22px; font-weight:750; letter-spacing:-.04em; margin:0; }
+    .subbrand { color:var(--muted); font-size:13px; margin:0 0 24px; }
+    nav ol { list-style:none; padding:0; margin:0; }
+    nav li { border-top:1px solid var(--line); margin:0; }
+    nav a { display:flex; gap:12px; padding:9px 0; color:var(--muted); text-decoration:none; font-size:13px; line-height:1.5; }
+    nav a:hover, nav a[aria-current="location"] { color:var(--accent); }
+    .num { font:11px/1.9 ui-monospace,monospace; }
+    .sidebar-note { color:var(--muted); font-size:12px; margin-top:22px; }
+    main { min-width:0; max-width:935px; }
+    header { padding-bottom:32px; border-bottom:1px solid var(--line); }
+    .eyebrow,.section-label { color:var(--accent); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; }
+    h1,h2 { font-family:Georgia,"Times New Roman",serif; font-weight:normal; letter-spacing:-.03em; }
+    h1 { font-size:clamp(44px,6vw,72px); line-height:1.06; margin:16px 0 22px; }
+    h2 { font-size:clamp(29px,3.2vw,39px); line-height:1.15; margin:10px 0 22px; }
+    h3 { font-size:19px; line-height:1.35; margin:28px 0 12px; }
+    h4 { font-size:16px; margin:22px 0 10px; }
+    p { margin:0 0 16px; }
+    .lede { font-size:21px; line-height:1.55; color:var(--muted); max-width:760px; }
+    .metadata { display:flex; flex-wrap:wrap; gap:8px 22px; color:var(--muted); font-size:12px; margin:24px 0; }
+    button { font:inherit; cursor:pointer; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 14px; font-size:13px; }
+    button:hover { border-color:var(--accent); }
+    section { padding-top:42px; margin-top:20px; border-top:1px solid var(--line); }
+    section:first-of-type { border:0; margin-top:0; }
+    ul,ol { padding-left:23px; margin:12px 0 22px; }
+    li { margin-bottom:9px; }
+    code { background:var(--code); border-radius:3px; padding:2px 5px; font:.85em/1.6 ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; }
+    pre { margin:18px 0; padding:19px 22px; background:var(--code); border:1px solid var(--line); border-radius:7px; overflow-x:auto; font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    pre code { padding:0; font:inherit; overflow-wrap:normal; }
+    .note { padding:19px 22px; border:1px solid var(--line); border-radius:8px; background:var(--soft); margin:24px 0; }
+    .note.limit { background:var(--amber-soft); }
+    .note strong:first-child { display:block; color:var(--accent); margin-bottom:6px; font-size:14px; }
+    .note.limit strong:first-child { color:var(--amber); }
+    .note p:last-child { margin-bottom:0; }
+    .table-wrap { overflow-x:auto; margin:20px 0; }
+    table { width:100%; border-collapse:collapse; text-align:left; font-size:14px; }
+    caption { text-align:left; font-size:12px; color:var(--muted); padding:0 0 10px; }
+    th,td { border-bottom:1px solid var(--line); padding:12px 14px 12px 0; vertical-align:top; }
+    th { font-size:12px; color:var(--muted); font-weight:650; }
+    td:last-child,th:last-child { padding-right:0; }
+    .wide { min-width:610px; }
+    .flow { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:24px 0; }
+    .card { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:17px; }
+    .card strong { display:block; margin-bottom:7px; font-size:15px; }
+    .card p { font-size:13px; color:var(--muted); margin:0; }
+    .map { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:12px; margin:24px 0; }
+    .map .card { text-align:center; }
+    .passage { color:var(--muted); font-size:11px; text-align:center; max-width:100px; }
+    .arrow { display:block; font-size:25px; line-height:1.2; color:var(--accent); }
+    .source { font-size:12px; color:var(--muted); margin:14px 0 0; }
+    .tag { display:inline-block; background:var(--soft); color:var(--accent); border-radius:4px; padding:2px 7px; font-size:11px; font-weight:650; }
+    .tag.limited { background:var(--amber-soft); color:var(--amber); }
+    details { border:1px solid var(--line); border-radius:7px; padding:13px 17px; margin:18px 0; }
+    summary { cursor:pointer; font-size:14px; font-weight:650; }
+    details pre { margin-bottom:0; }
+    .steps { list-style:none; padding:0; counter-reset:step; }
+    .steps>li { counter-increment:step; position:relative; padding:0 0 18px 43px; border-bottom:1px solid var(--line); margin-bottom:20px; }
+    .steps>li::before { content:counter(step); position:absolute; left:0; top:0; color:var(--accent); background:var(--soft); border-radius:50%; width:28px; height:28px; text-align:center; font-size:13px; line-height:28px; }
+    .steps h3 { margin:0 0 8px; font-size:17px; }
+    .steps p:last-child { margin-bottom:0; }
+    footer { margin-top:45px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    @media (max-width:1080px) { .layout { grid-template-columns:190px minmax(0,1fr); gap:34px; padding:30px; } .flow { grid-template-columns:1fr 1fr; } }
+    @media (max-width:760px) { .layout { display:block; padding:24px 20px 48px; } aside { position:static; max-height:none; overflow:visible; margin-bottom:35px; } nav ol { display:grid; grid-template-columns:1fr 1fr; gap:0 18px; } .sidebar-note { display:none; } .lede { font-size:19px; } .map { grid-template-columns:1fr; } .passage { max-width:none; } .arrow { transform:rotate(90deg); } pre { font-size:12px; padding:15px; } section { padding-top:30px; } }
+    @media (max-width:430px) { .flow { grid-template-columns:1fr; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+    @media print {
+      :root { --paper:white; --surface:white; --ink:#17251f; --muted:#46564d; --line:#c7cfc8; --accent:#225943; --soft:#f0f4ed; --amber:#6b4517; --amber-soft:#f8f1e7; --code:#f0f2ee; }
+      @page { size:A4; margin:17mm; }
+      body { font-size:10pt; line-height:1.5; }
+      .layout { display:block; padding:0; max-width:none; } main { max-width:none; }
+      aside,.skip,button { display:none; } h1 { font-size:38pt; } h2 { font-size:24pt; } h3 { font-size:13pt; } .lede { font-size:13pt; }
+      section { padding-top:23px; } h2,h3,h4,summary { break-after:avoid; }
+      .card,.note,tr { break-inside:avoid; } .table-wrap { overflow:visible; } table { font-size:9pt; } .wide { min-width:0; }
+      pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:8pt; } .flow { grid-template-columns:1fr 1fr; }
+      .map { grid-template-columns:1fr auto 1fr auto 1fr; } .arrow { transform:none; } a { color:var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to the guide</a>
+  <div class="layout">
+    <aside>
+      <p class="brand">world-game</p>
+      <p class="subbrand">Story data · Author’s guide</p>
+      <nav aria-label="Table of contents">
+        <ol>
+          <li><a href="#overview"><span class="num">01</span> Package overview</a></li>
+          <li><a href="#loading"><span class="num">02</span> Loading the package</a></li>
+          <li><a href="#manifest"><span class="num">03</span> Manifest &amp; identifiers</a></li>
+          <li><a href="#world"><span class="num">04</span> World state &amp; entities</a></li>
+          <li><a href="#knowledge"><span class="num">05</span> Truth, belief &amp; knowledge</a></li>
+          <li><a href="#profiles"><span class="num">06</span> Character profiles</a></li>
+          <li><a href="#aspects"><span class="num">07</span> Fate aspects</a></li>
+          <li><a href="#rules"><span class="num">08</span> Rules, checks &amp; stunts</a></li>
+          <li><a href="#predicates"><span class="num">09</span> Preconditions</a></li>
+          <li><a href="#progression"><span class="num">10</span> Quests, scenes &amp; time</a></li>
+          <li><a href="#dialogue"><span class="num">11</span> Dialogue &amp; fixtures</a></li>
+          <li><a href="#walkthrough"><span class="num">12</span> A turn, end to end</a></li>
+          <li><a href="#persistence"><span class="num">13</span> Saves &amp; package hashes</a></li>
+          <li><a href="#authoring"><span class="num">14</span> Editing &amp; extending</a></li>
+          <li><a href="#validation"><span class="num">15</span> Validation &amp; troubleshooting</a></li>
+          <li><a href="#sources"><span class="num">16</span> Source map</a></li>
+        </ol>
+      </nav>
+      <p class="sidebar-note">Based on the implemented Python models and the bundled <em>Gate at Dusk</em> package. Includes adventure spoilers.</p>
+    </aside>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Data structures / Gate at Dusk</p>
+        <h1>How a story<br>becomes a world.</h1>
+        <p class="lede">A detailed explanation of <code>src/world_game/data/stories</code>: what each file contains, how its references connect, and how the engine turns those records into playable, persistent consequences.</p>
+        <div class="metadata"><span>Implementation: v0.1</span><span>Story: gate-at-dusk · 1.0</span><span>Reviewed: 7 October 2026</span><span>Self-contained HTML · Works offline</span></div>
+        <button type="button" id="print-guide">Print / save as PDF</button>
+      </header>
+
+      <section id="overview" aria-labelledby="overview-title">
+        <p class="section-label">01 / The package</p>
+        <h2 id="overview-title">One directory, one starting world.</h2>
+        <p>A story is an authored package of JSON resources. It provides an initial world snapshot, character profiles, Fate action definitions, aspects, quest definitions, scene definitions, and a dialogue catalog. A campaign starts with a deep copy of that snapshot; play changes the campaign through typed events. It does not rewrite the story files.</p>
+        <p>The current repository contains one package:</p>
+        <pre><code>src/world_game/data/stories/
+└── gate_at_dusk/
+    ├── manifest.json
+    ├── entities.json
+    ├── profiles.json
+    ├── rules.json
+    ├── aspects.json
+    ├── quests.json
+    ├── scenes.json
+    ├── dialogue.json
+    └── fixtures/
+        ├── demo.json
+        └── eval-cases.json</code></pre>
+        <div class="table-wrap"><table class="wide">
+          <caption>The eight runtime resources and two supporting fixture files</caption>
+          <thead><tr><th scope="col">File</th><th scope="col">JSON root</th><th scope="col">Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/manifest.json"><code>manifest.json</code></a></td><td>Object → <code>Manifest</code></td><td>Package identity, compatibility versions, entry scene, player, and resource names.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/entities.json"><code>entities.json</code></a></td><td>Object → <code>WorldState</code></td><td>The entire initial world, including physical entities, facts, knowledge, relationships, quest instances, clock, and runtime bookkeeping.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/profiles.json"><code>profiles.json</code></a></td><td>Array → <code>list[Profile]</code></td><td>Public and private character descriptions used when voicing NPCs.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/rules.json"><code>rules.json</code></a></td><td>Object → <code>Rules</code></td><td>17 action rules, three stunts, aspect template names, and consequence descriptions.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/aspects.json"><code>aspects.json</code></a></td><td>ID-keyed object → <code>dict[str, Aspect]</code></td><td>Six initial character aspects: five for Lea and Oren’s hidden concern.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/quests.json"><code>quests.json</code></a></td><td>Array → <code>list[QuestDefinition]</code></td><td>The allowed stages and terminal stages of the ledger quest.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/scenes.json"><code>scenes.json</code></a></td><td>Array → <code>list[SceneDefinition]</code></td><td>Three scene definitions with locations and stakes.</td></tr>
+            <tr><td><a href="../src/world_game/data/stories/gate_at_dusk/dialogue.json"><code>dialogue.json</code></a></td><td>Object → <code>Dialogue</code></td><td>A versioned catalog of ten authored lines; currently loaded and persisted but not looked up by gameplay code.</td></tr>
+            <tr><td><code>fixtures/demo.json</code></td><td>Object with <code>success</code> and <code>failure</code></td><td>Offline demo input sequences and scripted dice.</td></tr>
+            <tr><td><code>fixtures/eval-cases.json</code></td><td>Array of 30 case objects</td><td>Live interpreter evaluation expectations and disclosure checks.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note limit"><strong>The current format is specific to this adventure.</strong><p>The data is structured and extensible in selected places, but the engine is still a bounded <em>Gate at Dusk</em> implementation. Story IDs, player identity, rule selection, scene transitions, quest logic, offers, and several entity references are fixed in Python. Copying this folder and renaming IDs does not create a supported new adventure.</p></div>
+        <div class="flow" aria-label="Story execution pipeline">
+          <div class="card"><strong>1. Author JSON</strong><p>World records and rule configuration.</p></div>
+          <div class="card"><strong>2. Load &amp; validate</strong><p>Build a typed <code>StoryPackage</code>.</p></div>
+          <div class="card"><strong>3. Resolve actions</strong><p>Engine plans, dice, choices, and events.</p></div>
+          <div class="card"><strong>4. Commit a campaign</strong><p>SQLite journal, snapshot, and pinned package.</p></div>
+        </div>
+        <p class="source">Source: <a href="../src/world_game/story/schema.py">story/schema.py</a>, <a href="../src/world_game/story/loader.py">story/loader.py</a>.</p>
+      </section>
+
+      <section id="loading" aria-labelledby="loading-title">
+        <p class="section-label">02 / Assembly</p>
+        <h2 id="loading-title">How the loader combines the files.</h2>
+        <p><code>load_story(directory=None, resources=None)</code> in <code>story/loader.py</code> is the entry point. It returns a <code>StoryPackage</code>, which is the in-memory bundle consumed by the coordinator and persistence layer.</p>
+        <ol>
+          <li><strong>Choose a source.</strong> Without a directory, use the installed package resource <code>world_game/data/stories/gate_at_dusk</code>. With a directory, read from that path. With a nonempty <code>resources</code> dictionary, parse its stored filename-to-text entries instead of reading the filesystem.</li>
+          <li><strong>Read eight fixed filenames.</strong> The loader has an explicit filename list. It does not scan the directory or discover additional resources through the manifest. Fixture files are not read here.</li>
+          <li><strong>Parse the manifest.</strong> Its <code>resources</code> set must equal the loaded filenames excluding <code>manifest.json</code>. A mismatch raises <code>GameError</code>.</li>
+          <li><strong>Parse the initial state.</strong> The whole <code>entities.json</code> object is validated as <code>WorldState</code>.</li>
+          <li><strong>Replace the aspect map.</strong> Parse <code>aspects.json</code> as a dictionary of <code>Aspect</code>, then assign it to <code>state.aspects</code>. This replaces rather than merges any aspects supplied in <code>entities.json</code>; the bundled world has an empty map there.</li>
+          <li><strong>Parse the remaining resources.</strong> Profiles, quests, and scenes are typed lists; rules and dialogue are typed objects. Preserve the original resource text in <code>package.resources</code>.</li>
+          <li><strong>Validate relationships and policy.</strong> <code>validate_story()</code> starts with <code>validate_state()</code>, then checks rules, definition references, compatibility constraints, and the authored player setup.</li>
+        </ol>
+        <pre><code>StoryPackage
+├── manifest       ← manifest.json
+├── initial_state  ← entities.json, with aspects replaced from aspects.json
+├── profiles       ← profiles.json
+├── rules          ← rules.json
+├── quests         ← quests.json
+├── scenes         ← scenes.json
+├── dialogue       ← dialogue.json
+└── resources      ← exact text of all eight runtime files</code></pre>
+        <p><code>new_state(package, campaign_id, seed=None)</code> deep-copies <code>initial_state</code>, assigns the campaign ID, sets content-hashed story and rules references, and replaces the placeholder random seed with the supplied seed or a fresh random 64-character hexadecimal seed. The authored snapshot remains reusable for another campaign.</p>
+        <p class="source">Source: <a href="../src/world_game/story/loader.py">load_story(), new_state()</a>.</p>
+      </section>
+
+      <section id="manifest" aria-labelledby="manifest-title">
+        <p class="section-label">03 / Identity and references</p>
+        <h2 id="manifest-title">The manifest is the compatibility contract.</h2>
+        <pre><code class="language-json" data-json-source="manifest.json" data-json-pointer="">{
+  "id": "gate-at-dusk",
+  "version": "1.0",
+  "schema_version": 1,
+  "ruleset_id": "fate-condensed-cli-v1",
+  "entry_scene_id": "scene:gate",
+  "player_id": "actor:lea",
+  "resources": [
+    "entities.json",
+    "profiles.json",
+    "rules.json",
+    "aspects.json",
+    "quests.json",
+    "scenes.json",
+    "dialogue.json"
+  ],
+  "engine_version": "0.1",
+  "reducer_version": "world-game-reducer-v1"
+}</code></pre>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Field</th><th scope="col">Meaning and current restriction</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code>, <code>version</code></td><td>Must be exactly <code>gate-at-dusk</code> and <code>1.0</code>. These are literal types, not unrestricted strings.</td></tr>
+            <tr><td><code>schema_version</code></td><td>Must be <code>1</code>. Identifies the supported story format.</td></tr>
+            <tr><td><code>ruleset_id</code></td><td>Must be <code>fate-condensed-cli-v1</code>.</td></tr>
+            <tr><td><code>entry_scene_id</code></td><td>Must reference a scene definition. It is validated, but startup uses the already authored <code>initial_state.scene</code> and entity placements; this field does not construct them.</td></tr>
+            <tr><td><code>player_id</code></td><td>Must be <code>actor:lea</code>. Runtime code also uses this ID directly.</td></tr>
+            <tr><td><code>resources</code></td><td>The seven non-manifest runtime filenames. Order is irrelevant to the loader’s set comparison. Adding a filename does not extend the fixed reader.</td></tr>
+            <tr><td><code>engine_version</code></td><td>Must be <code>0.1</code>.</td></tr>
+            <tr><td><code>reducer_version</code></td><td>Must be <code>world-game-reducer-v1</code>, which identifies the supported event reducer contract.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>IDs are references; names and aliases are presentation.</h3>
+        <p>The shared <code>ID</code> type is a string of 1–160 characters. Prefixes such as <code>actor:</code>, <code>item:</code>, <code>portal:</code>, and <code>scene:</code> are naming conventions; the basic ID type does not enforce a prefix grammar. Several particular IDs are nevertheless mandatory because the engine references them directly.</p>
+        <p>When a record says <code>profile_ref: "profile:oren"</code>, the reference must resolve to the matching profile definition. For entities, the dictionary key must equal the record’s inner <code>id</code>. Preserve that same-key/same-ID convention for all keyed record maps, even where validation is less exhaustive.</p>
+        <pre><code>actor:oren
+  ├── actor.profile_ref → profile:oren          (profiles.json)
+  ├── placement.container_id → location:gatehouse
+  └── aspect:oren:blame
+        └── grounding.id → proposition:oren_fears_blame
+
+recover_ledger                                 (runtime quest ID)
+  └── definition_ref → quest:recover_ledger     (quest definition ID)
+
+scene:gate:1                                   (runtime scene instance ID)
+  └── definition_ref → scene:gate               (scene definition ID)</code></pre>
+        <p><code>identity.name</code> is the display label; <code>identity.aliases</code> supplies reference vocabulary. Renaming Oren’s displayed name while preserving <code>actor:oren</code> is structurally different from renaming the ID. The offline interpreter and model prompts also contain authored vocabulary, so display-name changes may need corresponding parser and prompt updates.</p>
+        <p class="source">Source: <a href="../src/world_game/domain/common.py">ID and Value</a>, <a href="../src/world_game/story/schema.py">Manifest</a>, <a href="../src/world_game/models/scripted.py">offline interpreter</a>.</p>
+      </section>
+
+      <section id="world" aria-labelledby="world-title">
+        <p class="section-label">04 / Physical and runtime state</p>
+        <h2 id="world-title">entities.json contains much more than entities.</h2>
+        <p>This file serializes <code>WorldState</code>. Its nested <code>entities</code> map is only one part of the object. The other maps describe truths, knowledge, relationships, promises, quest progress, scheduled work, and the current scene and session.</p>
+        <div class="table-wrap"><table>
+          <caption>Top-level WorldState fields</caption>
+          <thead><tr><th scope="col">Fields</th><th scope="col">Role in the starting world</th></tr></thead>
+          <tbody>
+            <tr><td><code>schema_version</code></td><td>World-state schema version, fixed at <code>1</code>.</td></tr>
+            <tr><td><code>campaign_id</code>, <code>world_version</code></td><td>Initially <code>initial</code> and <code>0</code>. A fresh campaign replaces the ID; committed event batches advance the world version.</td></tr>
+            <tr><td><code>ruleset_ref</code>, <code>story_ref</code></td><td>Initial authored references. <code>new_state()</code> replaces them with references that include hashes.</td></tr>
+            <tr><td><code>clock</code></td><td><code>player_turn</code> and <code>tick</code> both start at zero. Turns count player actions; ticks drive scheduled effects.</td></tr>
+            <tr><td><code>rng</code></td><td><code>sha256-counter-v1</code>, a 64-character hexadecimal seed, and a counter. Fresh campaigns replace the zero seed and start a fresh RNG state.</td></tr>
+            <tr><td><code>next_id</code></td><td>Starts at <code>1</code>; supports generated IDs during play.</td></tr>
+            <tr><td><code>entities</code></td><td>13 records: three locations, two portals, four items, one container, and three actors.</td></tr>
+            <tr><td><code>propositions</code>, <code>beliefs</code>, <code>knowledge</code></td><td>Canonical facts, personal belief records, and per-actor awareness. Beliefs initially contain no entries.</td></tr>
+            <tr><td><code>relationships</code></td><td>Initially Sen’s trust in Lea, with value <code>1</code>.</td></tr>
+            <tr><td><code>aspects</code></td><td>An empty placeholder in this file; the loader replaces it with <code>aspects.json</code>.</td></tr>
+            <tr><td><code>conversations</code>, <code>offers</code>, <code>commitments</code></td><td>Initially empty. Filled by conversation, collateral, and key-loan events.</td></tr>
+            <tr><td><code>quests</code>, <code>scheduled_effects</code></td><td>The active ledger quest and its pending tick-20 deadline.</td></tr>
+            <tr><td><code>scene</code>, <code>session</code></td><td>Initial gate scene, participants, GM Fate pool, deferred awards, and session boundaries.</td></tr>
+            <tr><td><code>conflict</code></td><td><code>null</code> initially. Combat later supplies participants, active actor, exchange order, and harm state.</td></tr>
+            <tr><td><code>applied_trigger_ids</code></td><td>Initially empty. Records single-use triggers and failed methods, including the failed gate bluff.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Entities use components selected by their kind.</h3>
+        <p>Every entity has <code>id</code>, <code>kind</code>, and <code>identity</code>. Optional component fields must agree with <code>kind</code>; irrelevant components are absent or <code>null</code>. Unknown fields are rejected.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Kind</th><th scope="col">Required components</th><th scope="col">Placement</th></tr></thead>
+          <tbody>
+            <tr><td><code>location</code></td><td><code>location</code>, containing <code>reachable</code>.</td><td>Must have no parent.</td></tr>
+            <tr><td><code>portal</code></td><td><code>portal</code>: two endpoints, open/locked state, key IDs, tags.</td><td>Must have no parent; connects locations through endpoints.</td></tr>
+            <tr><td><code>item</code></td><td><code>item</code>: tags and quantity of at least one.</td><td>Required; usually a location or actor, sometimes a portal for a lodged item.</td></tr>
+            <tr><td><code>actor</code></td><td><code>actor</code> and <code>fate</code>.</td><td>Required; initially a location.</td></tr>
+            <tr><td><code>container</code></td><td>No actor, location, portal, item, or Fate component.</td><td>Optional. The sealed archive is a root container with no parent.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Placement is the inventory and location graph.</h3>
+        <p>An item belongs to Lea when its <code>placement.container_id</code> equals <code>actor:lea</code>. Lea is at the gatehouse because her parent is <code>location:gatehouse</code>. <code>location_of()</code> walks parent links to find a location. The current <code>possesses()</code> helper checks direct containment, so a nested item in a carried container does not automatically satisfy a possession requirement.</p>
+        <pre><code class="language-json" data-json-source="entities.json" data-json-pointer="/entities/item:royal_seal">{
+  "id": "item:royal_seal",
+  "kind": "item",
+  "identity": {
+    "name": "Royal Seal",
+    "aliases": [
+      "royal seal",
+      "seal"
+    ],
+    "description": ""
+  },
+  "placement": {
+    "container_id": "actor:lea"
+  },
+  "location": null,
+  "portal": null,
+  "item": {
+    "tags": [
+      "credential"
+    ],
+    "quantity": 1
+  },
+  "actor": null,
+  "fate": null
+}</code></pre>
+        <p>The seal’s <code>credential</code> tag makes it eligible as evidence for <code>official_bearing</code>. The lockpicks’ <code>lockpick</code> tag enables lock picking. Tags are useful only when a handler checks them; inventing a tag does not implement a new ability.</p>
+        <div class="map" aria-label="Initial adventure location map">
+          <div class="card"><strong>Gatehouse</strong><p>Lea and Oren<br>Outside the gate</p></div>
+          <div class="passage"><span class="arrow" aria-hidden="true">↔</span>Gate<br>closed, unlocked</div>
+          <div class="card"><strong>Courtyard</strong><p>Sen<br>Records key held by Sen</p></div>
+          <div class="passage"><span class="arrow" aria-hidden="true">↔</span>Records door<br>closed, locked</div>
+          <div class="card"><strong>Records office</strong><p>Ledger<br>Initially on the room’s floor</p></div>
+        </div>
+        <pre><code class="language-json" data-json-source="entities.json" data-json-pointer="/entities/portal:records_door/portal">{
+  "endpoints": [
+    "location:courtyard",
+    "location:records"
+  ],
+  "open": false,
+  "locked": true,
+  "key_item_ids": [
+    "item:records_key"
+  ],
+  "tags": [
+    "mechanical_lock"
+  ]
+}</code></pre>
+        <p>A portal must connect two distinct location entities and cannot be both open and locked. Movement needs an adjacent connecting portal that is open and unlocked, and can be blocked by a grounded <code>jammed_portal</code> aspect. A key must be in the portal’s <code>key_item_ids</code> and directly possessed by the actor. <code>reachable</code> is part of the location schema; current movement admission primarily uses portal connectivity and state.</p>
+        <h3>Actors carry profiles, goals, and Fate sheets.</h3>
+        <p><code>actor.profile_ref</code> points to <code>profiles.json</code>. <code>goal_ids</code> supplies authored motives, such as <code>authorized_visitors</code> for Oren. These strings do not automatically resolve into executable quest logic. Actor status is <code>active</code>, <code>conceded</code>, or <code>taken_out</code>; disposition ranges from −2 to +2.</p>
+        <p>The Fate sheet stores skills, stunt IDs, refresh, Fate points, physical and mental stress used, consequence slots, an optional stress capacity override, and whether consequences are allowed. Lea starts with refresh 3 and three Fate points. NPCs have zero personal Fate points; their spending comes from the scene’s GM pool. Oren and Sen each have a stress override of 3 and no consequences.</p>
+        <div class="table-wrap"><table>
+          <caption>Lea’s initial nine skills; their sorted allocation must remain [0, 1, 1, 2, 2, 2, 3, 3, 4]</caption>
+          <thead><tr><th scope="col">Rating</th><th scope="col">Skills</th></tr></thead>
+          <tbody><tr><td>4</td><td>deceive</td></tr><tr><td>3</td><td>notice, influence</td></tr><tr><td>2</td><td>athletics, stealth, will</td></tr><tr><td>1</td><td>investigate, craft</td></tr><tr><td>0</td><td>fight</td></tr></tbody>
+        </table></div>
+        <details><summary>View the complete initial Lea entity</summary><pre><code class="language-json" data-json-source="entities.json" data-json-pointer="/entities/actor:lea">{
+  "id": "actor:lea",
+  "kind": "actor",
+  "identity": {
+    "name": "Lea",
+    "aliases": [
+      "lea"
+    ],
+    "description": "A courier in an official-looking uniform."
+  },
+  "placement": {
+    "container_id": "location:gatehouse"
+  },
+  "location": null,
+  "portal": null,
+  "item": null,
+  "actor": {
+    "profile_ref": "profile:lea",
+    "goal_ids": [
+      "recover_ledger"
+    ],
+    "status": "active",
+    "disposition": 0
+  },
+  "fate": {
+    "skills": {
+      "athletics": 2,
+      "fight": 0,
+      "notice": 3,
+      "investigate": 1,
+      "influence": 3,
+      "deceive": 4,
+      "stealth": 2,
+      "craft": 1,
+      "will": 2
+    },
+    "stunt_ids": [
+      "official_bearing",
+      "read_the_room",
+      "quick_hands"
+    ],
+    "refresh": 3,
+    "fate_points": 3,
+    "physical_stress_used": 0,
+    "mental_stress_used": 0,
+    "consequence_slots": {
+      "mild": null,
+      "moderate": null,
+      "severe": null
+    },
+    "stress_capacity_override": null,
+    "has_consequences": true
+  }
+}</code></pre></details>
+        <p class="source">Source: <a href="../src/world_game/domain/state.py">WorldState and Entity</a>, <a href="../src/world_game/domain/fate.py">FateSheet</a>, <a href="../src/world_game/engine/queries.py">location and possession queries</a>, <a href="../src/world_game/engine/actions.py">action admission</a>.</p>
+      </section>
+
+      <section id="knowledge" aria-labelledby="knowledge-title">
+        <p class="section-label">05 / Information boundaries</p>
+        <h2 id="knowledge-title">A fact can be true, hidden, or disbelieved.</h2>
+        <p>The game separates canonical truth from what an actor knows and what an actor believes. This lets a convincing lie affect Oren without changing the underlying truth of Lea’s invitation.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Record</th><th scope="col">What it represents</th><th scope="col">Relevant fields</th></tr></thead>
+          <tbody>
+            <tr><td><code>Proposition</code></td><td>A canonical statement. Truth is <code>true</code>, <code>false</code>, or <code>unknown</code>, stored as strings.</td><td><code>id</code>, <code>predicate</code>, <code>arguments</code>, <code>truth</code>, <code>source</code>, <code>discovery_policy_id</code>.</td></tr>
+            <tr><td><code>Belief</code></td><td>An actor’s stance toward a proposition: <code>believes</code>, <code>disbelieves</code>, or <code>uncertain</code>.</td><td><code>holder_id</code>, <code>proposition_id</code>, <code>stance</code>, <code>source_event_ids</code>, <code>acquired_tick</code>.</td></tr>
+            <tr><td><code>KnowledgeState</code></td><td>What an actor has encountered or learned, including observations with provenance.</td><td><code>known_entity_ids</code>, <code>known_record_ids</code>, <code>observations</code>.</td></tr>
+            <tr><td><code>Relationship</code></td><td>A directed trust record, separate from prose and beliefs.</td><td><code>from_id</code>, <code>to_id</code>, <code>kind: "trust"</code>, <code>value</code> (−2 to +2), <code>source</code>.</td></tr>
+          </tbody>
+        </table></div>
+        <pre><code class="language-json" data-json-source="entities.json" data-json-pointer="/propositions/proposition:lea_expected">{
+  "id": "proposition:lea_expected",
+  "predicate": "expected",
+  "arguments": {
+    "subject_id": "actor:lea",
+    "object_id": null,
+    "value": null
+  },
+  "truth": "false",
+  "source": {
+    "kind": "story",
+    "id": "gate-at-dusk@1.0"
+  },
+  "discovery_policy_id": "discovery:lea_expected"
+}</code></pre>
+        <p>At startup, Lea knows <code>proposition:lea_expected</code> and its false truth. Oren does not. A successful bluff creates <code>belief:oren:invitation</code> with stance <code>believes</code>; the proposition stays false. An authored verification can later change Oren’s stance to <code>disbelieves</code>.</p>
+        <p>The current proposition predicates are <code>expected</code>, <code>incriminates</code>, <code>fears</code>, and <code>claim</code>. <code>arguments</code> contains a subject ID, optional object ID, and optional string, integer, or boolean value. <code>discovery_policy_id</code> names authored provenance/policy; there is no generic plugin resolver that executes an arbitrary new discovery policy from this string.</p>
+        <h3>Initial information is deliberately asymmetric.</h3>
+        <ul>
+          <li><strong>Lea</strong> knows her invitation is false. She knows Sen exists, although Sen starts in another location.</li>
+          <li><strong>Oren</strong> knows his own fear of blame. Lea does not initially know the corresponding aspect.</li>
+          <li><strong>Sen</strong> knows the ledger incriminates the deputy. Asking her about the ledger emits an approved disclosure that adds the proposition to Lea’s known records.</li>
+        </ul>
+        <p>An observation records <code>record_id</code>, a field (<code>presence</code>, <code>placement</code>, <code>portal</code>, <code>speech</code>, or <code>presentation</code>), a string or boolean value, <code>source_event_id</code>, and <code>acquired_tick</code>. Historical observations can remain after a record moves; they describe what was observed, not an unrestricted view of the current world.</p>
+        <div class="note"><strong>Knowing an entity does not make it visible or reachable.</strong><p><code>project()</code> produces a filtered context for the interpreter, NPC, narrator, or decision role. Nearby entities, directly held items, adjacent portals and their endpoints, and conflict participants follow visibility rules. Known records, personal beliefs, and known grounded aspects follow separate filters. Models receive these views rather than the full canonical state.</p></div>
+        <p class="source">Source: <a href="../src/world_game/domain/state.py">information records</a>, <a href="../src/world_game/engine/queries.py">project()</a>, <a href="../src/world_game/engine/scenes.py">observe()</a>, <a href="../src/world_game/engine/actions.py">change_belief() and authored disclosure</a>.</p>
+      </section>
+
+      <section id="profiles" aria-labelledby="profiles-title">
+        <p class="section-label">06 / Character voice</p>
+        <h2 id="profiles-title">Profiles supply context, not world mutations.</h2>
+        <pre><code class="language-json" data-json-source="profiles.json" data-json-pointer="/1">{
+  "id": "profile:oren",
+  "actor_id": "actor:oren",
+  "public": "A guard watching the gate.",
+  "private": "Admit authorized visitors and avoid blame. You do not know the invitation truth.",
+  "private_known_by": [
+    "actor:oren"
+  ]
+}</code></pre>
+        <p><code>profiles.json</code> contains one profile for each actor. <code>public</code> and <code>private</code> are text fields of at most 4,000 characters. The validator requires the actor to exist and <code>private_known_by</code> to equal exactly <code>[actor_id]</code>. Every actor’s <code>profile_ref</code> must resolve to a profile ID.</p>
+        <p>When the coordinator voices an authored NPC utterance, it selects the speaking actor’s profile and sends its public description, private description, and actor goal IDs with that actor’s filtered context. This guides motive and phrasing. The response is constrained to the permitted authored response and supplied disclosure references.</p>
+        <p>The profile is separate from <code>entity.identity.description</code>. They currently repeat some public information, but editing a profile does not automatically update the entity’s visible description. Keep the two consistent where they describe the same character.</p>
+        <div class="note limit"><strong>Private prose does not implement secrets or abilities.</strong><p>Write important facts as propositions, knowledge records, aspects, or handler logic as appropriate. A sentence such as “Sen can unlock every door” does not bypass key and portal checks. If you add a secret to private prose, also author the structured fact and its permitted disclosure path when that secret must affect gameplay.</p></div>
+        <p class="source">Source: <a href="../src/world_game/story/schema.py">Profile</a>, <a href="../src/world_game/story/loader.py">profile validation</a>, <a href="../src/world_game/engine/turns.py">voice_npcs()</a>.</p>
+      </section>
+
+      <section id="aspects" aria-labelledby="aspects-title">
+        <p class="section-label">07 / Grounded Fate descriptions</p>
+        <h2 id="aspects-title">Aspects have meaning because they have support.</h2>
+        <p><code>aspects.json</code> is an ID-keyed dictionary. Lea has five persistent character aspects: “Borrowed Uniform, Convincing Manner,” “Cannot Leave a Debt Unpaid,” “Sen Once Saved My Life,” “Always Looking for Another Way In,” and “A Steady Hand Under Pressure.” The sixth aspect belongs to Oren:</p>
+        <pre><code class="language-json" data-json-source="aspects.json" data-json-pointer="/aspect:oren:blame">{
+  "id": "aspect:oren:blame",
+  "text": "Fear of Being Blamed",
+  "kind": "character",
+  "subject_id": "actor:oren",
+  "scope": {
+    "kind": "character",
+    "id": "actor:oren"
+  },
+  "grounding": {
+    "kind": "proposition",
+    "id": "proposition:oren_fears_blame"
+  },
+  "known_by": [
+    "actor:oren"
+  ],
+  "free_invokes": {},
+  "lifetime": {
+    "kind": "persistent"
+  },
+  "source": {
+    "kind": "story",
+    "id": "gate-at-dusk@1.0"
+  },
+  "relevance_tags": [
+    "concern",
+    "social",
+    "gain_entry"
+  ],
+  "recovery": null
+}</code></pre>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Field</th><th scope="col">How it works</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code>, <code>text</code></td><td>Stable reference and human-readable phrase.</td></tr>
+            <tr><td><code>kind</code></td><td><code>character</code>, <code>situation</code>, <code>boost</code>, or <code>consequence</code>.</td></tr>
+            <tr><td><code>subject_id</code></td><td>The entity the aspect describes.</td></tr>
+            <tr><td><code>scope</code></td><td>A <code>kind</code> (<code>character</code>, <code>location</code>, <code>conversation</code>, or <code>scene</code>) and corresponding ID.</td></tr>
+            <tr><td><code>grounding</code></td><td>The structured support for the aspect; see the grounding table below.</td></tr>
+            <tr><td><code>known_by</code></td><td>Actors allowed to see and use the aspect. Oren’s concern starts known only to Oren.</td></tr>
+            <tr><td><code>free_invokes</code></td><td>A controller-to-count map, such as <code>{"actor:lea": 1}</code>. Empty initially.</td></tr>
+            <tr><td><code>lifetime</code></td><td><code>persistent</code>, <code>scene_bound</code>, <code>next_eligible_use</code>, or <code>until_grounding_false</code>. All six initial character aspects are persistent.</td></tr>
+            <tr><td><code>source</code></td><td><code>story</code> or <code>event</code>, plus a source ID.</td></tr>
+            <tr><td><code>relevance_tags</code></td><td>Tags used by invoke relevance logic, such as <code>social</code>, <code>gain_entry</code>, or <code>lock</code>.</td></tr>
+            <tr><td><code>recovery</code></td><td>Optional consequence details: severity 2/4/6, physical/mental harm, slot, treated flag, and treatment scene/session numbers.</td></tr>
+            <tr><td><code>template_id</code></td><td>Optional ID from the finite <code>AspectTemplate</code> enum; omitted in the initial character aspects.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="table-wrap"><table>
+          <caption>Grounding is checked against the current canonical state</caption>
+          <thead><tr><th scope="col">Grounding kind</th><th scope="col">Condition for support</th></tr></thead>
+          <tbody>
+            <tr><td><code>authored_trait</code></td><td>Always holds in the current implementation; used for Lea’s fixed character traits.</td></tr>
+            <tr><td><code>proposition</code></td><td>The referenced proposition exists and its truth is <code>true</code>.</td></tr>
+            <tr><td><code>belief</code></td><td>The referenced belief exists and its stance is <code>believes</code>.</td></tr>
+            <tr><td><code>relationship</code></td><td>The relationship record exists; this generic check does not impose a minimum trust value.</td></tr>
+            <tr><td><code>component_predicate</code></td><td><code>possessed</code>/<code>lodged</code> checks the entity’s parent against <code>value_id</code>; <code>open</code> checks a portal; <code>burning</code>/<code>noisy</code> checks item tags.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Discovering Oren’s concern can add Lea to <code>known_by</code> and award free invokes according to the create-advantage outcome. It does not need to invent the aspect during play: the hidden record already exists.</p>
+        <p>Grounding is checked during loading and after actions. Unsupported aspects are removed by events. Scene closing removes boosts and scene-bound aspects. Consequence recovery also follows explicit engine boundaries; treatment alone does not immediately erase a consequence.</p>
+        <p>A legal invoke can grant +2 or a reroll using a controlled free invoke or a paid Fate point. Knowing an aspect, having a valid grounding, and establishing relevance still matter; merely adding a phrase to narration does not grant an invoke.</p>
+        <p class="source">Source: <a href="../src/world_game/domain/fate.py">Aspect and grounding models</a>, <a href="../src/world_game/engine/queries.py">grounding_holds()</a>, <a href="../src/world_game/engine/choices.py">invoke relevance</a>, <a href="../src/world_game/engine/scenes.py">expiration and recovery</a>.</p>
+      </section>
+
+      <section id="rules" aria-labelledby="rules-title">
+        <p class="section-label">08 / The ruleset</p>
+        <h2 id="rules-title">Rules configure registered engine behavior.</h2>
+        <p><code>rules.json</code> contains <code>id</code>, <code>stunts</code>, <code>actions</code>, <code>aspect_templates</code>, and <code>consequence_catalog</code>. It is not an executable scripting language. A handler ID selects Python behavior already registered by the engine.</p>
+        <h3>A complete action rule</h3>
+        <pre><code class="language-json" data-json-source="rules.json" data-json-pointer="/actions/0">{
+  "id": "gate.bluff",
+  "classification": "authored content",
+  "handler_id": "social_overcome",
+  "intent_match_tags": [
+    "gain_entry"
+  ],
+  "argument_schema_id": "Intent",
+  "preconditions": [],
+  "check": {
+    "kind": "static",
+    "action": "overcome",
+    "skill_id": "deceive",
+    "difficulty": 4,
+    "defense_skill": "will",
+    "goal_tag": "gain_entry"
+  },
+  "cost_ticks": 1,
+  "permitted_stunt_ids": [
+    "official_bearing"
+  ],
+  "outcomes": {
+    "failure": "gate_refuses_without_new_evidence",
+    "minor_cost": "admit_but_summon_verification",
+    "success": "admit_apparent_courier",
+    "style": "momentary_opening",
+    "optional_major_cost": null
+  },
+  "visibility_policy_id": "perception",
+  "reaction_policy_id": "authored"
+}</code></pre>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Field</th><th scope="col">Interpretation</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>Unique authored rule ID. Several exact IDs are required by rule selection.</td></tr>
+            <tr><td><code>classification</code></td><td><code>Fate rule</code>, <code>v0.1 policy</code>, or <code>authored content</code>; labels provenance rather than selecting behavior.</td></tr>
+            <tr><td><code>handler_id</code></td><td>Must be in the 15-name <code>HANDLERS</code> registry.</td></tr>
+            <tr><td><code>intent_match_tags</code></td><td>Authored metadata. Current <code>select_rule()</code> does not use this list to dynamically match rules.</td></tr>
+            <tr><td><code>argument_schema_id</code></td><td>Must be <code>Intent</code>, the typed action proposal contract.</td></tr>
+            <tr><td><code>preconditions</code></td><td>A list of typed predicates, all of which must pass; additional handler checks also apply.</td></tr>
+            <tr><td><code>check</code></td><td>Roll kind, Fate action, acting skill, difficulty, defense skill, and default goal tag.</td></tr>
+            <tr><td><code>cost_ticks</code></td><td>Only <code>0</code> or <code>1</code>; all bundled rules use 1. Conflict time is charged per exchange by separate logic.</td></tr>
+            <tr><td><code>permitted_stunt_ids</code></td><td>Which of the three authored stunts may apply, subject to actor ownership and stunt eligibility checks.</td></tr>
+            <tr><td><code>outcomes</code></td><td>Failure, minor-cost, success, style, and optional major-cost template IDs. Every non-null ID must be in the effect allowlist.</td></tr>
+            <tr><td><code>visibility_policy_id</code></td><td>Must be <code>perception</code>.</td></tr>
+            <tr><td><code>reaction_policy_id</code></td><td>Must be <code>authored</code>.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Check kinds and arithmetic</h3>
+        <ul>
+          <li><strong><code>none</code>:</strong> no roll. Both <code>action</code> and <code>skill_id</code> must be <code>null</code>. The action still checks permissions and may have effects.</li>
+          <li><strong><code>static</code>:</strong> roll four Fate dice against a fixed difficulty. Authored rule difficulties must be 0, 2, 4, or 6.</li>
+          <li><strong><code>active</code>:</strong> both actor and defender roll; opposition uses the defender’s selected skill rather than the rule’s static difficulty.</li>
+        </ul>
+        <pre><code>effort = sum(four dice) + acting skill + eligible stunt bonus + invoke bonus
+opposition = fixed difficulty
+          OR sum(defender dice) + defense skill + defender invoke bonus
+margin = effort - opposition
+
+margin &lt; 0    → failure
+margin = 0    → tie
+margin 1–2    → success
+margin ≥ 3    → success with style</code></pre>
+        <p>Each Fate die is −1, 0, or +1. The Fate actions are <code>overcome</code>, <code>create_advantage</code>, <code>attack</code>, and <code>defend</code>. Outcomes depend on the action: an overcome tie can succeed at a minor cost; create-advantage outcomes depend on whether an aspect is new, known, or undiscovered.</p>
+        <div class="note limit"><strong>The resolved plan can specialize the JSON check.</strong><p>Physical attacks choose Athletics when defending Lea and Fight when defending an NPC. Creating an advantage against an actor uses Fight versus Athletics. Treatment chooses Craft or Influence by harm track and derives difficulty from consequence severity, adding 2 for self-treatment. These adjustments are in <code>plan_action()</code>, so the literal rule row is not always the final roll configuration.</p></div>
+        <h3>The 17 bundled action rules</h3>
+        <div class="table-wrap"><table class="wide">
+          <thead><tr><th scope="col">Rule</th><th scope="col">Handler</th><th scope="col">Configured check</th><th scope="col">Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>gate.bluff</code></td><td><code>social_overcome</code></td><td>Deceive vs static 4</td><td>Claim authorized entry; failure records a blocked repeat, tie schedules verification.</td></tr>
+            <tr><td><code>gate.concern</code></td><td><code>social_overcome</code></td><td>Influence vs static 2</td><td>Address Oren’s discovered concern.</td></tr>
+            <tr><td><code>gate.exit</code></td><td><code>social_overcome</code></td><td>Influence vs static 2</td><td>Request passage out; failure can begin custody conflict.</td></tr>
+            <tr><td><code>read.concern</code></td><td><code>discover_advantage</code></td><td>Notice vs active Will</td><td>Discover Oren’s hidden aspect.</td></tr>
+            <tr><td><code>lock.pick</code></td><td><code>pick_lock</code></td><td>Craft vs static 2</td><td>Open a mechanical lock using lockpicks.</td></tr>
+            <tr><td><code>advantage.new</code></td><td><code>create_advantage</code></td><td>Athletics vs static 2</td><td>Create or enhance a grounded advantage; actor targets specialize the check.</td></tr>
+            <tr><td><code>attack.physical</code></td><td><code>attack</code></td><td>Fight, active opposition</td><td>Nonlethal physical conflict; defense is specialized by target.</td></tr>
+            <tr><td><code>treat</code></td><td><code>treat_consequence</code></td><td>Craft vs static 2</td><td>Base configuration; actual skill and difficulty depend on the consequence.</td></tr>
+            <tr><td><code>action.speak</code></td><td><code>speak</code></td><td>No roll</td><td>Conversation, help requests, and authored offers/disclosures.</td></tr>
+            <tr><td><code>action.move</code></td><td><code>move</code></td><td>No roll</td><td>Traverse an available adjacent portal.</td></tr>
+            <tr><td><code>action.present_item</code></td><td><code>present_item</code></td><td>No roll</td><td>Show a possessed item without transferring ownership.</td></tr>
+            <tr><td><code>action.take_item</code></td><td><code>take_item</code></td><td>No roll</td><td>Take an item directly in the current location.</td></tr>
+            <tr><td><code>action.transfer_item</code></td><td><code>transfer_item</code></td><td>No roll</td><td>Authored accepted transfers: key to Sen or receipt to Oren.</td></tr>
+            <tr><td><code>action.retrieve_lodged_item</code></td><td><code>retrieve_lodged_item</code></td><td>No roll</td><td>Retrieve an item lodged in a reachable portal.</td></tr>
+            <tr><td><code>action.use_key</code></td><td><code>use_key</code></td><td>No roll</td><td>Open a portal using an accepted possessed key.</td></tr>
+            <tr><td><code>action.wait</code></td><td><code>wait</code></td><td>No roll</td><td>Advance time without another effect.</td></tr>
+            <tr><td><code>action.accept_offer</code></td><td><code>accept_offer</code></td><td>No roll</td><td>Accept or decline structured offer terms.</td></tr>
+          </tbody>
+        </table></div>
+        <p><code>select_rule()</code> uses exact IDs: social actions choose <code>gate.exit</code> for goal <code>exit</code>, <code>gate.concern</code> for <code>address_concern</code>, otherwise <code>gate.bluff</code>; the specialized handlers map to their fixed rules; the others use <code>action.&lt;handler_id&gt;</code>. A new row or match tag does not create a new selection path.</p>
+        <h3>Stunts are fixed +2 bonuses with eligibility conditions.</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Stunt</th><th scope="col">Eligible use</th><th scope="col">Additional requirement</th></tr></thead>
+          <tbody>
+            <tr><td><code>official_bearing</code></td><td>Overcome / Deceive / social_overcome / gain_entry</td><td>A possessed credential-tagged item must actually be presented.</td></tr>
+            <tr><td><code>read_the_room</code></td><td>Create advantage / Notice / discover_advantage / concern</td><td>A conversation must exist with both actor and target at the current location.</td></tr>
+            <tr><td><code>quick_hands</code></td><td>Overcome / Craft / pick_lock / lock</td><td>A directly possessed lockpick-tagged item.</td></tr>
+          </tbody>
+        </table></div>
+        <p>A stunt must be on the actor’s sheet and in the selected rule’s permitted list, and its action, skill, handler, and goal must match. The engine adds <code>2 × number of eligible stunts</code>. All three authored stunt definitions are required by validation.</p>
+        <h3>Templates are bounded names, not executable expressions.</h3>
+        <p>The initial aspect template catalog contains <code>momentary_opening</code>, <code>noisy_intrusion</code>, <code>jammed_portal</code>, <code>off_balance</code>, <code>focused</code>, <code>cover</code>, and <code>burning</code>. Creation methods are also constrained by handler logic and the typed template enum; adding a string to this catalog does not extend them.</p>
+        <p>The consequence catalog has exactly <code>physical</code> and <code>mental</code> tracks with three descriptions each: <code>bruised</code>, <code>sprained_wrist</code>, <code>deep_bruising</code>; and <code>shaken</code>, <code>rattled_confidence</code>, <code>deep_distress</code>.</p>
+        <div class="note limit"><strong>Outcome names are validated, but effects remain implemented in Python.</strong><p>The plan carries failure, minor-cost, and optional major-cost templates into relevant choice handling. Successful social, movement, lock, disclosure, and advantage effects are largely implemented by handler branches. In particular, changing <code>outcomes.success</code> or <code>outcomes.style</code> to another registered name does not generically dispatch that effect. A no-roll rule with <code>no_effect</code> in its outcome fields can still move an actor, transfer an item, or create an offer through its handler.</p></div>
+        <p class="source">Source: <a href="../src/world_game/domain/intents.py">HANDLERS and Intent</a>, <a href="../src/world_game/engine/actions.py">select_rule(), plan_action(), action_effects()</a>, <a href="../src/world_game/engine/fate_rules.py">Fate outcomes</a>, <a href="../src/world_game/engine/intents_registry.py">effect allowlist</a>.</p>
+      </section>
+
+      <section id="predicates" aria-labelledby="predicates-title">
+        <p class="section-label">09 / Declarative guards</p>
+        <h2 id="predicates-title">Preconditions describe opportunities.</h2>
+        <p>Every bundled rule currently has an empty <code>preconditions</code> list. The format supports adding declarative guards. The list itself is an implicit AND: every predicate must evaluate true before the handler continues.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Kind</th><th scope="col">Subject / object / value</th><th scope="col">Runtime test</th></tr></thead>
+          <tbody>
+            <tr><td><code>co_located</code></td><td>Subject and object entity IDs.</td><td>Both resolve to the same non-null location.</td></tr>
+            <tr><td><code>possesses</code></td><td>Actor subject and item object.</td><td>Item is directly contained by the actor.</td></tr>
+            <tr><td><code>portal_state</code></td><td>Portal subject; boolean value; <code>portal_field</code> is <code>open</code> or <code>locked</code>.</td><td>Portal field equals the value. The field defaults to <code>open</code>.</td></tr>
+            <tr><td><code>has_known_belief</code></td><td>Actor subject, proposition object, stance value.</td><td>A matching personal belief exists; it does not test canonical truth.</td></tr>
+            <tr><td><code>aspect_active</code></td><td>Aspect subject ID.</td><td>Aspect exists and its grounding holds; visibility is a separate requirement.</td></tr>
+            <tr><td><code>quest_stage</code></td><td>Runtime quest subject ID and stage value.</td><td>Quest’s stage equals the value.</td></tr>
+            <tr><td><code>conversation_participant</code></td><td>Conversation subject and actor object.</td><td>The actor is in the conversation’s participant list.</td></tr>
+            <tr><td><code>all</code>, <code>any</code>, <code>not</code></td><td>A <code>children</code> array of predicates.</td><td>Boolean composition. <code>not</code> requires exactly one child.</td></tr>
+          </tbody>
+        </table></div>
+        <p>For example, this guard could be placed in a rule’s <code>preconditions</code> array to require both possession of the seal and a closed gate. This is an illustrative extension, not a predicate currently present in the package:</p>
+        <pre><code class="language-json" data-json-model="Predicate">{
+  "kind": "all",
+  "children": [
+    {
+      "kind": "possesses",
+      "subject_id": "actor:lea",
+      "object_id": "item:royal_seal"
+    },
+    {
+      "kind": "portal_state",
+      "subject_id": "portal:gate",
+      "portal_field": "open",
+      "value": false
+    }
+  ]
+}</code></pre>
+        <p>Boolean nodes have 1–8 children. The story validator bounds predicate traversal to four levels and rejects missing subject/object references; it counts from the rule’s top-level predicates at depth 1. Use the documented record types for each predicate: the general reference check does not fully enforce every predicate’s subject/object type pairing.</p>
+        <p>These predicates add requirements to existing behavior. They do not remove handler rules such as co-location, active target status, possession, known concern, the failed-bluff lockout, or accepted transfer destinations. There is no arbitrary Python, JSON path assignment, SQL, or expression evaluation in a predicate.</p>
+        <p class="source">Source: <a href="../src/world_game/story/schema.py">AtomicPredicate and BooleanPredicate</a>, <a href="../src/world_game/story/loader.py">predicate validation</a>, <a href="../src/world_game/engine/actions.py">evaluate_predicate()</a>.</p>
+      </section>
+
+      <section id="progression" aria-labelledby="progression-title">
+        <p class="section-label">10 / Progression</p>
+        <h2 id="progression-title">Definitions and live instances are separate.</h2>
+        <h3>Quest definitions enumerate stages.</h3>
+        <pre><code class="language-json" data-json-source="quests.json" data-json-pointer="/0">{
+  "id": "quest:recover_ledger",
+  "stages": [
+    "active",
+    "acquired",
+    "completed",
+    "failed"
+  ],
+  "terminal_stages": [
+    "completed",
+    "failed"
+  ]
+}</code></pre>
+        <p>The live instance sits in <code>entities.json.quests</code> under the shorter runtime ID:</p>
+        <pre><code class="language-json" data-json-source="entities.json" data-json-pointer="/quests/recover_ledger">{
+  "id": "recover_ledger",
+  "definition_ref": "quest:recover_ledger",
+  "stage": "active",
+  "completed_objective_ids": [],
+  "terminal_result": null
+}</code></pre>
+        <p><code>definition_ref</code> links the instance to the definition. The instance’s <code>stage</code> is itself a closed enum of <code>active</code>, <code>acquired</code>, <code>completed</code>, and <code>failed</code>. <code>terminal_result</code> is <code>null</code>, <code>success</code>, or <code>failure</code>.</p>
+        <p><code>evaluate_quests()</code> implements the actual ledger transitions: direct possession of <code>item:ledger</code> changes active to acquired; possessing it at <code>location:gatehouse</code> completes the mission. Completed objective IDs become <code>ledger_acquired</code> and then <code>ledger_returned</code>. Failure logic is authored in the scheduler and conflict/capture paths. The definition’s stage list validates the vocabulary; it does not encode those transition conditions.</p>
+        <h3>Scene definitions describe locations; scene state manages resources.</h3>
+        <pre><code class="language-json" data-json-source="scenes.json" data-json-pointer="/0">{
+  "id": "scene:gate",
+  "location_ids": [
+    "location:gatehouse"
+  ],
+  "stakes": "Recover the ledger; defeat means capture."
+}</code></pre>
+        <p>The definition holds <code>id</code>, <code>location_ids</code>, and <code>stakes</code>. The live <code>SceneState</code> holds an instance ID, definition reference, sequence number, participant IDs, GM Fate pool, deferred awards, and start tick. Initially, the instance is <code>scene:gate:1</code>, with Lea and Oren and a GM pool of 1.</p>
+        <p><code>boundaries()</code> uses a hard-coded location-to-definition mapping for the three current locations. Moving to another location closes the previous scene and starts the corresponding scene when no conflict is active. During conflict, movement preserves the conflict scene. The engine’s roll stakes and context stakes are also authored in Python; the definition’s <code>stakes</code> text is not currently a general runtime stakes lookup.</p>
+        <p>Scene closing expires boosts and scene-bound aspects, clears relevant stress, processes deferred hostile-invoke awards, and checks recovery boundaries. <code>SessionState</code> tracks completed scenes, applied boundary IDs, NPC carryover credits, sequence, and whether the adventure is finished. Starting the app or reloading a save does not itself heal the character or refresh Fate points.</p>
+        <h3>Scheduled effects resolve after time advances.</h3>
+        <pre><code class="language-json" data-json-source="entities.json" data-json-pointer="/scheduled_effects/schedule:deadline">{
+  "id": "schedule:deadline",
+  "due_tick": 20,
+  "priority": 0,
+  "handler_id": "ledger_deadline",
+  "args": {
+    "actor_id": null,
+    "item_id": "item:ledger",
+    "portal_id": null,
+    "quest_id": "recover_ledger"
+  },
+  "status": "pending"
+}</code></pre>
+        <p>A scheduled effect has <code>id</code>, <code>due_tick</code>, <code>priority</code>, a closed <code>handler_id</code>, typed <code>args</code>, and status <code>pending</code>, <code>applied</code>, <code>skipped</code>, or <code>canceled</code>. The only handlers are <code>ledger_deadline</code> and <code>verify_invitation</code>. Arguments can reference an actor, item, portal, and runtime quest.</p>
+        <p>The scheduler processes due pending effects in order of <code>(due_tick, priority, id)</code>, with a processing limit of 20 per call. For normal committed actions the coordinator applies action effects, advances time, resolves due schedules, evaluates quests, expires unsupported aspects, handles boundaries, and records observations before committing.</p>
+        <div class="note limit"><strong>The exact tick-20 behavior matters.</strong><p>At or after tick 20, the deadline handler fails the mission only if the ledger’s direct parent is still <code>location:records</code>. It transfers the ledger to <code>container:archive</code> and fails the quest. If the ledger has already been taken, the deadline is skipped; it does not independently require reaching the gatehouse before tick 20. Because action effects happen before schedules, taking the ledger on the action that advances to tick 20 also avoids this removal.</p></div>
+        <p>A gate-bluff tie creates a verification effect due at <code>current_tick + action_time_cost + 2</code>: two ticks after that action finishes. If verification proceeds, Oren disbelieves the invitation and closes the gate; he can move to the courtyard to confront Lea. A terminal quest or inactive Oren cancels the applicable verification effect.</p>
+        <h3>Offers and commitments preserve promises.</h3>
+        <p>The initial maps are empty, but authored conversations can create <code>collateral</code> and <code>key_loan</code> offers. An offer stores proposer, recipient, transfer terms, a commitment, optional portal ID, expiry tick, source event, and status. Accepting it performs the permitted transfers and creates a durable commitment; speech alone does not transfer inventory.</p>
+        <p>A commitment names debtor, creditor, an item/recipient fulfillment predicate, a breach trigger, status, and source event. Returning Sen’s key can fulfill the loan. Leaving with the ledger and her key can break it and reduce trust. These consequences are engine branches, not inferred from private character prose.</p>
+        <p class="source">Source: <a href="../src/world_game/engine/actions.py">evaluate_quests(), offer(), accept_offer()</a>, <a href="../src/world_game/engine/scenes.py">boundaries()</a>, <a href="../src/world_game/engine/scheduler.py">run_due()</a>, <a href="../src/world_game/engine/turns.py">time and commit ordering</a>.</p>
+      </section>
+
+      <section id="dialogue" aria-labelledby="dialogue-title">
+        <p class="section-label">11 / Text and support data</p>
+        <h2 id="dialogue-title">Dialogue is packaged; fixtures exercise behavior.</h2>
+        <h3>dialogue.json</h3>
+        <p>The <code>Dialogue</code> model has <code>version</code> and <code>lines</code>, a map of string keys to text. The bundled catalog is:</p>
+        <pre><code class="language-json" data-json-source="dialogue.json" data-json-pointer="">{
+  "version": "dialogue-v1",
+  "lines": {
+    "gate_success": "Oren: The seal looks proper. Go through.",
+    "gate_failure": "Oren: I need new evidence before I can admit you.",
+    "collateral": "Oren: Leave the seal with me as collateral, and I will admit you.",
+    "sen_greeting": "Sen: Lea! I am glad you came.",
+    "ledger_secret": "Sen: The ledger shows that the deputy redirected relief supplies. Please preserve it.",
+    "key_offer": "Sen: Take my key, if you promise to return it.",
+    "verification": "Oren: The invitation could not be verified. Explain yourself.",
+    "compel": "Sen asks you to deliver an archive receipt to Oren before leaving.",
+    "victory": "You carry the recovered ledger outside the gate. The mission is complete.",
+    "failure": "The ledger mission has failed."
+  }
+}</code></pre>
+        <div class="note limit"><strong>Current wiring: catalog stored, lines duplicated in code.</strong><p>The loader validates this file and includes it in package persistence and hashing. Gameplay does not currently read <code>package.dialogue.lines</code>; authored lines and fallback output are literals in <code>engine/actions.py</code>, <code>engine/scheduler.py</code>, and related engine code. Editing this file changes the package content and hash, but does not automatically change the spoken line. To make it authoritative, add catalog lookups at the corresponding emission sites.</p></div>
+        <h3>fixtures/demo.json</h3>
+        <p>This has two branches, <code>success</code> and <code>failure</code>. Each contains a <code>dice</code> array and an ordered <code>inputs</code> array. Each scripted roll is four integers from −1 to +1. The success branch uses <code>[-1, -1, 0, 0]</code> for its first roll, reloads a saved pending choice, invokes Lea’s concept aspect, and completes the mission. The failure branch waits 20 times to trigger the ledger removal.</p>
+        <p><code>@reload</code> is a demo runner directive that closes and reopens the database at the post-roll choice. It is not a normal player action or a story resource directive. Inputs such as <code>/pass</code>, <code>/invoke</code>, and <code>/choose</code> are executed by the CLI command path.</p>
+        <h3>fixtures/eval-cases.json</h3>
+        <p>The 30 cases test live interpretation and disclosure boundaries. Required case fields are <code>id</code>, <code>text</code>, <code>handlers</code>, <code>goals</code>, <code>scene</code>, <code>clarification_allowed</code>, <code>forbidden_disclosures</code>, and <code>category</code>. Some cases add <code>methods</code>, <code>expected_targets</code>, or <code>require_new_claim</code>.</p>
+        <p>The runner checks a returned action against allowed handler IDs, optional allowed goals/methods, target expectations, visible references, and prohibited disclosure substrings. It then probes actual engine admission and journal replay using scripted reactions. These cases measure interpretation and admission; they do not evaluate live NPC or narration quality. Their <code>scene</code> labels are evaluation setup hints, not scene definition IDs.</p>
+        <p>Neither fixture file is listed in <code>manifest.resources</code>, validated by <code>load_story()</code>, stored in <code>StoryPackage.resources</code>, nor included in the story package hash. The CLI demo and evaluation runner read them separately from installed package resources.</p>
+        <p class="source">Source: <a href="../src/world_game/cli.py">run_demo()</a>, <a href="../src/world_game/models/evaluation.py">evaluate()</a>, <a href="../src/world_game/data/stories/gate_at_dusk/fixtures/demo.json">demo fixture</a>, <a href="../src/world_game/data/stories/gate_at_dusk/fixtures/eval-cases.json">evaluation cases</a>.</p>
+      </section>
+
+      <section id="walkthrough" aria-labelledby="walkthrough-title">
+        <p class="section-label">12 / Worked example</p>
+        <h2 id="walkthrough-title">“I show Oren the seal and ask for entry.”</h2>
+        <p>This example connects the files to an actual resolution. Assume the initial world, a claimed authorization, and the first scripted roll in the success demo.</p>
+        <ol class="steps">
+          <li><h3>Interpret an action against a filtered view.</h3><p>The interpreter sees Lea’s current surroundings, carried seal, known records, and known aspects. It proposes <code>social_overcome</code> targeting <code>actor:oren</code>, with goal <code>gain_entry</code>, method <code>claim_expected_courier</code>, and the seal in <code>presented_item_ids</code>. It does not choose success or mutate a portal.</p></li>
+          <li><h3>Select and admit gate.bluff.</h3><p><code>select_rule()</code> finds <code>gate.bluff</code>. <code>plan_action()</code> checks Oren is present and active, Lea possesses any presented item, the quest has not ended, the bluff is a supported method, and no failed-bluff trigger blocks repeating it. The JSON supplies Deceive, difficulty 4, and a one-tick cost.</p></li>
+          <li><h3>Resolve the stunt from world data.</h3><p>Lea owns <code>official_bearing</code>, the rule permits it, the action/skill/goal match, and the presented seal has <code>credential</code>. The engine locks a +2 stunt bonus into the plan.</p></li>
+          <li><h3>Roll and offer a durable invoke choice.</h3><p>The four dice <code>[-1, -1, 0, 0]</code> sum to −2. Lea’s Deceive is 4, so <code>−2 + 4 + 2 = 4</code> against difficulty 4: a provisional tie. The player can pass or make a legal invoke; the pending resolution stores the dice, plan, choices, and provisional resource balances across reload.</p></li>
+          <li><h3>Apply the chosen Fate outcome.</h3><p>In the demo, a paid +2 invoke of <code>aspect:lea:concept</code> raises effort to 6 and margin to +2: success. Lea’s Fate points fall from 3 to 2. Passing on the original tie instead admits her at a minor cost and schedules verification two ticks after the action’s completion.</p></li>
+          <li><h3>Emit, reduce, validate, and commit.</h3><p>The handler opens <code>portal:gate</code>, records Oren’s belief that Lea is expected, and emits the permitted speech. It does not change the proposition’s false truth and does not move Lea through the gate. The coordinator advances time, checks due effects and quests, updates observation/boundary records, validates the batch, and atomically commits it to SQLite. Narration presents that committed result.</p></li>
+        </ol>
+        <div class="note"><strong>One player statement can mention several actions.</strong><p>The interpreter resolves the next consequential action of a compound plan. Gaining permission and then moving through the gate are distinct operations. A story rule opening the gate does not by itself relocate the player.</p></div>
+        <p class="source">Source: <a href="../src/world_game/models/prompts/interpreter.txt">interpreter contract</a>, <a href="../src/world_game/engine/actions.py">planning and effects</a>, <a href="../src/world_game/engine/turns.py">Coordinator</a>, <a href="../src/world_game/data/stories/gate_at_dusk/fixtures/demo.json">success demo</a>.</p>
+      </section>
+
+      <section id="persistence" aria-labelledby="persistence-title">
+        <p class="section-label">13 / Portability</p>
+        <h2 id="persistence-title">A campaign pins the resources it started with.</h2>
+        <p><code>StoryPackage.resources</code> retains the original text of the eight runtime files. The SQLite repository stores the package alongside the campaign, event journal, snapshots, durable pending choices, and history. Portable exports include the package so importing does not silently substitute the files currently installed on another machine.</p>
+        <p><code>package_hash()</code> parses all resource texts as JSON, builds a filename-to-value map, canonicalizes it, and computes a SHA-256 digest. Formatting whitespace and object key order do not change that digest. Array order is generally significant; selected lists identified as semantic sets, such as <code>known_by</code>, <code>participant_ids</code>, <code>stunt_ids</code>, and <code>known_record_ids</code>, are normalized by the shared canonicalization helpers.</p>
+        <pre><code>state.story_ref   = "gate-at-dusk@" + package_hash(package)
+state.ruleset_ref = "fate-condensed-cli-v1@" + digest(package.rules)</code></pre>
+        <p>The authored <code>story_ref</code> in the initial JSON is <code>gate-at-dusk@1.0</code>; the new campaign reference uses the content hash. Editing runtime text, including a stored but currently unused dialogue line, changes the package hash. Editing only demo/evaluation fixtures does not.</p>
+        <p>On package load from a save or import, the repository reconstructs the typed package from its stored resources and compares digests and pinned hashes. Existing campaigns therefore keep their saved story resources. Editing the checkout affects newly created campaigns that load those edited resources; it is not a migration of old campaign state.</p>
+        <p class="source">Source: <a href="../src/world_game/story/loader.py">package_hash() and new_state()</a>, <a href="../src/world_game/domain/common.py">canonical() and digest()</a>, <a href="../src/world_game/persistence/sqlite.py">saved package and import checks</a>.</p>
+      </section>
+
+      <section id="authoring" aria-labelledby="authoring-title">
+        <p class="section-label">14 / Practical authoring</p>
+        <h2 id="authoring-title">Change data with the engine contract in view.</h2>
+        <div class="table-wrap"><table class="wide">
+          <caption>Where to make a change, and whether JSON alone can express it</caption>
+          <thead><tr><th scope="col">Desired change</th><th scope="col">Files / implementation</th><th scope="col">Scope</th></tr></thead>
+          <tbody>
+            <tr><td>Revise a visible location or item description</td><td><code>entities.json → identity.description</code>.</td><td><span class="tag">Data</span></td></tr>
+            <tr><td>Revise a character’s voice or private motive</td><td><code>profiles.json</code>; keep public entity descriptions and structured facts consistent.</td><td><span class="tag">Data</span></td></tr>
+            <tr><td>Adjust a standard static rule difficulty</td><td><code>rules.json → actions[].check.difficulty</code>; use 0/2/4/6 and review handler specializations.</td><td><span class="tag">Data within constraints</span></td></tr>
+            <tr><td>Add a guard to an existing action</td><td><code>rules.json → preconditions</code>, using typed predicates and existing records.</td><td><span class="tag">Data within constraints</span></td></tr>
+            <tr><td>Move the ledger-removal time</td><td><code>entities.json → scheduled_effects.schedule:deadline.due_tick</code>.</td><td><span class="tag">Data</span></td></tr>
+            <tr><td>Add a passive item in an existing room</td><td>Add an item entity with a unique ID, correct components, placement, and useful name/aliases. Existing visibility and take-item logic can handle it.</td><td><span class="tag">Data</span> Live interpretation may recognize it; scripted vocabulary can require code.</td></tr>
+            <tr><td>Add a new secret and reveal it in conversation</td><td>Proposition/knowledge/aspect data plus an authored disclosure branch and any prompt/parser changes.</td><td><span class="tag limited">Data + code</span></td></tr>
+            <tr><td>Change a spoken fallback line</td><td>The engine’s utterance emission site; optionally implement a <code>dialogue.lines</code> lookup.</td><td><span class="tag limited">Code currently required</span></td></tr>
+            <tr><td>Add a new location, NPC interaction, quest, or offer type</td><td>Data plus scene mapping, quest/handler/offer logic, parsing, and validation as needed.</td><td><span class="tag limited">Data + code</span></td></tr>
+            <tr><td>Add a new action, stunt, or scheduled handler</td><td>Extend the relevant literal types, registries, rule selector, planning/effects, reducer where needed, prompts, and meaningful tests.</td><td><span class="tag limited">Engine extension</span></td></tr>
+            <tr><td>Support a completely different story package</td><td>Generalize manifest literals, CLI story selection, hard-coded IDs, scene boundaries, and authored mechanics.</td><td><span class="tag limited">Engine extension</span></td></tr>
+          </tbody>
+        </table></div>
+        <h3>Example: add a passive prop.</h3>
+        <p>This valid entity could be added under <code>entities.json.entities["item:chalk"]</code>. It introduces an item in an existing room without creating a new rule or quest. It does not grant a “draw magic circle” action.</p>
+        <pre><code class="language-json" data-json-model="Entity">{
+  "id": "item:chalk",
+  "kind": "item",
+  "identity": {
+    "name": "Chalk",
+    "aliases": ["chalk"],
+    "description": "A short stick of white chalk."
+  },
+  "placement": {"container_id": "location:courtyard"},
+  "item": {"tags": [], "quantity": 1}
+}</code></pre>
+        <p>Omitted optional components default to <code>null</code>. An item in Lea’s current room becomes visible through existing queries; it does not need to be prelisted as known by every actor. If the prop is an already known personal possession instead, author both its placement and the appropriate initial knowledge records.</p>
+        <h3>A reliable editing sequence</h3>
+        <ol>
+          <li><strong>Identify the authoritative record.</strong> Use entity placement for ownership, portal components for passage state, propositions for truth, knowledge/aspects for disclosure, and profiles for voice.</li>
+          <li><strong>Preserve IDs and compatibility values.</strong> Change labels independently from references. If you must rename an ID, update every reference and inspect engine constants and prompts that use it.</li>
+          <li><strong>Keep definitions and instances aligned.</strong> Quest and scene references must resolve; profile references must be valid; initial player placement and scene should agree. Initial aspects belong in <code>aspects.json</code>.</li>
+          <li><strong>Validate the package.</strong> Run the CLI validation command below. Inspect generated schemas when uncertain about a field, enum, or bound.</li>
+          <li><strong>Exercise the affected behavior.</strong> Use the offline demo for the existing adventure paths, and a fresh test campaign for changed interactions. For code changes, run the relevant existing tests and add coverage for newly implemented behavior.</li>
+          <li><strong>Start a fresh campaign to see new package data.</strong> Saved campaigns retain their embedded package and state.</li>
+        </ol>
+        <div class="note limit"><strong>Custom-directory validation does not select that directory for play.</strong><p><code>validate-story &lt;directory&gt;</code> accepts a path, but <code>world-game new</code> loads the bundled package and only accepts the story name <code>gate-at-dusk</code>. There is currently no CLI option to start from an arbitrary copied story directory. The Python loader accepts a directory, so a custom launcher can explicitly use that API while respecting the same engine constraints.</p></div>
+        <p class="source">Source: <a href="../src/world_game/cli.py">new and validate-story commands</a>, <a href="../src/world_game/story/loader.py">directory loading</a>, <a href="../src/world_game/engine/actions.py">supported action behavior</a>.</p>
+      </section>
+
+      <section id="validation" aria-labelledby="validation-title">
+        <p class="section-label">15 / Verification</p>
+        <h2 id="validation-title">Schema checks and world checks work together.</h2>
+        <p>All story models inherit the shared <code>Value</code> base, configured with <code>extra="forbid"</code>, strict validation, and assignment validation. Use JSON booleans, numbers, arrays, and nulls with their actual types rather than string approximations. <code>Text</code> fields are limited to 4,000 characters; identity names to 1–120 characters, and aliases to at most 20 entries.</p>
+        <p>Model validation checks shapes and literal values. Semantic validation checks supported references and world consistency. It is substantial but not exhaustive: a schema-valid string does not automatically have an implemented runtime meaning, and validation success does not prove every possible play path works.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Validation area</th><th scope="col">Representative checks</th></tr></thead>
+          <tbody>
+            <tr><td>Physical state</td><td>Entity key/ID agreement, required components, existing parents, no containment cycles or item-as-parent, valid portal endpoints/key items, no open-and-locked portal.</td></tr>
+            <tr><td>Information and aspects</td><td>Knowledge holders are actors; known records/entities exist; belief/proposition arguments resolve; aspect subjects, knowledge controllers, scopes, and groundings are valid.</td></tr>
+            <tr><td>Fate state</td><td>Stress within capacity, NPC personal points zero, all nine PC skills, correct authored allocation and three stunts, five PC character aspects, valid consequence slots.</td></tr>
+            <tr><td>Definitions</td><td>Unique profile/scene/quest/stunt definition IDs, existing entry scene and state scene, nonempty valid location lists, quest stage membership and terminal-stage subsets, valid actor profile references.</td></tr>
+            <tr><td>Rules</td><td>Unique rule IDs, required authored rule IDs, registered handlers and effects, permitted stunt references, supported argument/policy IDs, check-kind consistency, bounded difficulties, predicate references/depth.</td></tr>
+            <tr><td>Runtime links</td><td>Conversation participants, offer transfer references, commitment parties/items, scheduled references, deferred awards, NPC credits, and conflict participants.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Useful commands from the repository root</h3>
+        <pre><code class="language-bash"># Parse and semantically validate the current package.
+uv run world-game validate-story src/world_game/data/stories/gate_at_dusk
+
+# Export the implemented schemas for inspection or editor tooling.
+uv run world-game schemas --output /tmp/world-game-schemas
+
+# Exercise the existing success and failure paths offline, including replay.
+uv run world-game demo --no-color
+
+# Check the loader, world invariants, and adventure integration behavior.
+uv run pytest tests/unit/test_world.py tests/integration/test_adventure.py</code></pre>
+        <p>The schema command writes <code>WorldState.schema.json</code>, <code>EventBatch.schema.json</code>, <code>IntentResult.schema.json</code>, <code>PendingResolution.schema.json</code>, and <code>StoryPackage.schema.json</code>. The package schema contains the nested manifest, rule, profile, quest, scene, and dialogue definitions; the world schema describes <code>entities.json</code> and nested aspect/entity types.</p>
+        <p>For an explicitly requested live interpreter evaluation, <code>uv run world-game eval-live --output /tmp/world-game-evaluation.json</code> uses the configured model/server and the evaluation fixtures. It is separate from ordinary offline validation and tests.</p>
+        <h3>Common errors and their causes</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Symptom / validation message</th><th scope="col">Likely correction</th></tr></thead>
+          <tbody>
+            <tr><td><code>manifest.resources: unexpected or missing resource files</code></td><td>Restore the seven supported non-manifest names. The reader’s filename list must change in code to support another runtime resource.</td></tr>
+            <tr><td><code>Extra inputs are not permitted</code></td><td>Remove a misspelled or unsupported field, or implement and validate a deliberate schema extension.</td></tr>
+            <tr><td><code>entity kind and components disagree</code></td><td>Match the component set to kind. Actors need both actor and Fate; portals cannot also be items.</td></tr>
+            <tr><td><code>missing parent</code> / <code>containment cycle</code></td><td>Fix <code>placement.container_id</code>; do not point an entity to itself or form a loop.</td></tr>
+            <tr><td><code>locked portal is open</code></td><td>Author a coherent open/locked state.</td></tr>
+            <tr><td><code>unregistered handler</code> / <code>unregistered effect template</code></td><td>Use a supported name or implement the corresponding engine extension first.</td></tr>
+            <tr><td><code>missing authored action rules</code></td><td>Restore required fixed rule IDs; match tags do not replace them.</td></tr>
+            <tr><td><code>check kind and action/skill disagree</code></td><td>No-roll checks need null action/skill; roll checks require both.</td></tr>
+            <tr><td><code>missing profile</code> / <code>invalid actor/profile visibility</code></td><td>Resolve the actor’s profile reference and make <code>private_known_by</code> contain exactly its actor.</td></tr>
+            <tr><td><code>grounding is false</code></td><td>Restore the supporting canonical record or component condition, or change/remove the unsupported aspect.</td></tr>
+            <tr><td>A dialogue edit has no visible effect</td><td>Update the current engine emission site or wire it to the catalog; also test a campaign using the edited package.</td></tr>
+            <tr><td>Edited story data does not appear in a saved game</td><td>The save pins its package. Start a fresh campaign rather than expecting a filesystem edit to migrate it.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="source">Source: <a href="../src/world_game/domain/common.py">strict base model</a>, <a href="../src/world_game/engine/validation.py">validate_state()</a>, <a href="../src/world_game/story/loader.py">validate_story() and export_schemas()</a>, <a href="../tests/unit/test_world.py">loader and world tests</a>.</p>
+      </section>
+
+      <section id="sources" aria-labelledby="sources-title">
+        <p class="section-label">16 / Reading the implementation</p>
+        <h2 id="sources-title">Where to follow a field into code.</h2>
+        <p>This guide describes the implemented format, using exact resource excerpts and explicitly marked illustrative additions. The architecture and implementation documents provide design context; the models, loader, and runtime code determine what is currently supported.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Question</th><th scope="col">Source</th></tr></thead>
+          <tbody>
+            <tr><td>Which fields belong in each story resource?</td><td><a href="../src/world_game/story/schema.py">src/world_game/story/schema.py</a></td></tr>
+            <tr><td>How are files combined, checked, and hashed?</td><td><a href="../src/world_game/story/loader.py">src/world_game/story/loader.py</a></td></tr>
+            <tr><td>How do entities, knowledge, offers, and scenes serialize?</td><td><a href="../src/world_game/domain/state.py">src/world_game/domain/state.py</a></td></tr>
+            <tr><td>How do skills, sheets, aspects, and plans serialize?</td><td><a href="../src/world_game/domain/fate.py">src/world_game/domain/fate.py</a></td></tr>
+            <tr><td>Which action proposals and handlers exist?</td><td><a href="../src/world_game/domain/intents.py">src/world_game/domain/intents.py</a></td></tr>
+            <tr><td>What can an actor see, possess, or invoke?</td><td><a href="../src/world_game/engine/queries.py">src/world_game/engine/queries.py</a> and <a href="../src/world_game/engine/choices.py">choices.py</a></td></tr>
+            <tr><td>How are rules selected and effects implemented?</td><td><a href="../src/world_game/engine/actions.py">src/world_game/engine/actions.py</a></td></tr>
+            <tr><td>Which outcome effect names are accepted?</td><td><a href="../src/world_game/engine/intents_registry.py">src/world_game/engine/intents_registry.py</a></td></tr>
+            <tr><td>When do scenes close and deadlines run?</td><td><a href="../src/world_game/engine/scenes.py">src/world_game/engine/scenes.py</a> and <a href="../src/world_game/engine/scheduler.py">scheduler.py</a></td></tr>
+            <tr><td>How do choices, reactions, and commits fit together?</td><td><a href="../src/world_game/engine/turns.py">src/world_game/engine/turns.py</a>, <a href="../src/world_game/engine/reducer.py">reducer.py</a>, and <a href="../src/world_game/engine/validation.py">validation.py</a></td></tr>
+            <tr><td>How are packages retained in saves and exports?</td><td><a href="../src/world_game/persistence/sqlite.py">src/world_game/persistence/sqlite.py</a></td></tr>
+            <tr><td>How do demo and evaluation fixtures get used?</td><td><a href="../src/world_game/cli.py">src/world_game/cli.py</a> and <a href="../src/world_game/models/evaluation.py">models/evaluation.py</a></td></tr>
+          </tbody>
+        </table></div>
+        <p>Related project documentation: <a href="../README.md">README</a>, <a href="world-architecture.md">world architecture</a>, <a href="implementation-plan.md">implementation specification</a>, and <a href="architecture-review.html">architecture review</a>.</p>
+      </section>
+      <footer>world-game · Story data guide · Examples from gate_at_dusk · Source links resolve relative to this file in the repository.</footer>
+    </main>
+  </div>
+  <script>
+    const printButton = document.getElementById('print-guide');
+    const openedForPrint = [];
+    window.addEventListener('beforeprint', () => {
+      document.querySelectorAll('details:not([open])').forEach(detail => {
+        openedForPrint.push(detail);
+        detail.open = true;
+      });
+    });
+    window.addEventListener('afterprint', () => {
+      openedForPrint.splice(0).forEach(detail => { detail.open = false; });
+    });
+    printButton.addEventListener('click', () => window.print());
+    if ('IntersectionObserver' in window) {
+      const links = new Map(Array.from(document.querySelectorAll('nav a')).map(link => [link.hash.slice(1), link]));
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (!visible.length) return;
+        links.forEach(link => link.removeAttribute('aria-current'));
+        links.get(visible[0].target.id)?.setAttribute('aria-current', 'location');
+      }, { rootMargin: '-5% 0px -65% 0px' });
+      document.querySelectorAll('main section').forEach(section => observer.observe(section));
+    }
+  </script>
+</body>
+</html>

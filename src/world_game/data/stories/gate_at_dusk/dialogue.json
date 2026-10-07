@@ -1,0 +1,15 @@
+{
+  "version": "dialogue-v1",
+  "lines": {
+    "gate_success": "Oren: The seal looks proper. Go through.",
+    "gate_failure": "Oren: I need new evidence before I can admit you.",
+    "collateral": "Oren: Leave the seal with me as collateral, and I will admit you.",
+    "sen_greeting": "Sen: Lea! I am glad you came.",
+    "ledger_secret": "Sen: The ledger shows that the deputy redirected relief supplies. Please preserve it.",
+    "key_offer": "Sen: Take my key, if you promise to return it.",
+    "verification": "Oren: The invitation could not be verified. Explain yourself.",
+    "compel": "Sen asks you to deliver an archive receipt to Oren before leaving.",
+    "victory": "You carry the recovered ledger outside the gate. The mission is complete.",
+    "failure": "The ledger mission has failed."
+  }
+}

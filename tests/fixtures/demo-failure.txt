@@ -1,0 +1,43 @@
+Gate at Dusk — offline failure demonstration
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+> wait
+You wait as dusk deepens.
+The ledger has been removed to a sealed archive. The mission fails.
+Replay verified: 20 committed batches; ending=failure.

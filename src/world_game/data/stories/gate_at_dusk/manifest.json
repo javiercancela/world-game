@@ -1,0 +1,19 @@
+{
+  "id": "gate-at-dusk",
+  "version": "1.0",
+  "schema_version": 1,
+  "ruleset_id": "fate-condensed-cli-v1",
+  "entry_scene_id": "scene:gate",
+  "player_id": "actor:lea",
+  "resources": [
+    "entities.json",
+    "profiles.json",
+    "rules.json",
+    "aspects.json",
+    "quests.json",
+    "scenes.json",
+    "dialogue.json"
+  ],
+  "engine_version": "0.1",
+  "reducer_version": "world-game-reducer-v1"
+}

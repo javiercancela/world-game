@@ -1,0 +1,11 @@
+CREATE TABLE campaign (id TEXT PRIMARY KEY, version INTEGER NOT NULL, state_hash TEXT NOT NULL, package_hash TEXT NOT NULL, schema_version INTEGER NOT NULL, reducer_version TEXT NOT NULL, provider TEXT NOT NULL);
+CREATE TABLE story_package (hash TEXT PRIMARY KEY, json TEXT NOT NULL);
+CREATE TABLE snapshot (version INTEGER PRIMARY KEY, json TEXT NOT NULL, hash TEXT NOT NULL);
+CREATE TABLE event_batch (id TEXT PRIMARY KEY, input_id TEXT UNIQUE NOT NULL, version INTEGER UNIQUE NOT NULL, json TEXT NOT NULL, hash TEXT NOT NULL);
+CREATE TABLE event (id TEXT PRIMARY KEY, batch_id TEXT NOT NULL REFERENCES event_batch(id), sequence INTEGER NOT NULL, json TEXT NOT NULL, UNIQUE(batch_id,sequence));
+CREATE TABLE interaction (id TEXT PRIMARY KEY, status TEXT NOT NULL, base_version INTEGER NOT NULL, revision INTEGER NOT NULL, json TEXT NOT NULL);
+CREATE UNIQUE INDEX active_interaction ON interaction(status) WHERE status='active';
+CREATE TABLE choice_response (id TEXT PRIMARY KEY, interaction_id TEXT NOT NULL REFERENCES interaction(id), revision INTEGER NOT NULL, option_id TEXT NOT NULL, result_json TEXT NOT NULL, UNIQUE(interaction_id,revision));
+CREATE TABLE model_call (key TEXT PRIMARY KEY, json TEXT NOT NULL);
+CREATE TABLE presentation (batch_id TEXT PRIMARY KEY REFERENCES event_batch(id), fallback TEXT NOT NULL, narration TEXT, delivered INTEGER NOT NULL DEFAULT 0);
+PRAGMA user_version=1;

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "profile:lea",
+    "actor_id": "actor:lea",
+    "public": "A courier in an official-looking uniform.",
+    "private": "The invitation is false. Sen once saved your life.",
+    "private_known_by": [
+      "actor:lea"
+    ]
+  },
+  {
+    "id": "profile:oren",
+    "actor_id": "actor:oren",
+    "public": "A guard watching the gate.",
+    "private": "Admit authorized visitors and avoid blame. You do not know the invitation truth.",
+    "private_known_by": [
+      "actor:oren"
+    ]
+  },
+  {
+    "id": "profile:sen",
+    "actor_id": "actor:sen",
+    "public": "An archivist with ink-stained fingers.",
+    "private": "Preserve the ledger: it proves the deputy redirected relief supplies. You know Lea.",
+    "private_known_by": [
+      "actor:sen"
+    ]
+  }
+]

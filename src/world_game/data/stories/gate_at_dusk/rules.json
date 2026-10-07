@@ -1,0 +1,554 @@
+{
+  "id": "fate-condensed-cli-v1",
+  "stunts": [
+    {
+      "id": "official_bearing",
+      "action": "overcome",
+      "skill_id": "deceive",
+      "handler_id": "social_overcome",
+      "goal": "gain_entry",
+      "item_tag": "credential",
+      "requires_conversation": false
+    },
+    {
+      "id": "read_the_room",
+      "action": "create_advantage",
+      "skill_id": "notice",
+      "handler_id": "discover_advantage",
+      "goal": "concern",
+      "item_tag": null,
+      "requires_conversation": true
+    },
+    {
+      "id": "quick_hands",
+      "action": "overcome",
+      "skill_id": "craft",
+      "handler_id": "pick_lock",
+      "goal": "lock",
+      "item_tag": "lockpick",
+      "requires_conversation": false
+    }
+  ],
+  "actions": [
+    {
+      "id": "gate.bluff",
+      "classification": "authored content",
+      "handler_id": "social_overcome",
+      "intent_match_tags": [
+        "gain_entry"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "static",
+        "action": "overcome",
+        "skill_id": "deceive",
+        "difficulty": 4,
+        "defense_skill": "will",
+        "goal_tag": "gain_entry"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [
+        "official_bearing"
+      ],
+      "outcomes": {
+        "failure": "gate_refuses_without_new_evidence",
+        "minor_cost": "admit_but_summon_verification",
+        "success": "admit_apparent_courier",
+        "style": "momentary_opening",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "gate.concern",
+      "classification": "authored content",
+      "handler_id": "social_overcome",
+      "intent_match_tags": [
+        "address_concern"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "static",
+        "action": "overcome",
+        "skill_id": "influence",
+        "difficulty": 2,
+        "defense_skill": "will",
+        "goal_tag": "address_concern"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "cost_alarm",
+        "success": "entry_without_invitation",
+        "style": "momentary_opening",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "gate.exit",
+      "classification": "authored content",
+      "handler_id": "social_overcome",
+      "intent_match_tags": [
+        "exit"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "static",
+        "action": "overcome",
+        "skill_id": "influence",
+        "difficulty": 2,
+        "defense_skill": "will",
+        "goal_tag": "exit"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "cost_alarm",
+        "success": "entry_without_invitation",
+        "style": "momentary_opening",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "read.concern",
+      "classification": "authored content",
+      "handler_id": "discover_advantage",
+      "intent_match_tags": [
+        "concern"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "active",
+        "action": "create_advantage",
+        "skill_id": "notice",
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "concern"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [
+        "read_the_room"
+      ],
+      "outcomes": {
+        "failure": "preserve_secret",
+        "minor_cost": "momentary_opening",
+        "success": "discover_concern",
+        "style": "discover_concern",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "lock.pick",
+      "classification": "authored content",
+      "handler_id": "pick_lock",
+      "intent_match_tags": [
+        "lock"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "static",
+        "action": "overcome",
+        "skill_id": "craft",
+        "difficulty": 2,
+        "defense_skill": "will",
+        "goal_tag": "lock"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [
+        "quick_hands"
+      ],
+      "outcomes": {
+        "failure": "noisy_intrusion",
+        "minor_cost": "lodge_lockpick",
+        "success": "open_lock",
+        "style": "momentary_opening",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "advantage.new",
+      "classification": "authored content",
+      "handler_id": "create_advantage",
+      "intent_match_tags": [
+        "advantage"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "static",
+        "action": "create_advantage",
+        "skill_id": "athletics",
+        "difficulty": 2,
+        "defense_skill": "will",
+        "goal_tag": "advantage"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "momentary_opening",
+        "success": "advantage",
+        "style": "advantage",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "attack.physical",
+      "classification": "authored content",
+      "handler_id": "attack",
+      "intent_match_tags": [
+        "fight"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "active",
+        "action": "attack",
+        "skill_id": "fight",
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "fight"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "momentary_opening",
+        "success": "hit",
+        "style": "hit",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "treat",
+      "classification": "authored content",
+      "handler_id": "treat_consequence",
+      "intent_match_tags": [
+        "treatment"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "static",
+        "action": "overcome",
+        "skill_id": "craft",
+        "difficulty": 2,
+        "defense_skill": "will",
+        "goal_tag": "treatment"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "cost_alarm",
+        "success": "treatment",
+        "style": "momentary_opening",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.speak",
+      "classification": "authored content",
+      "handler_id": "speak",
+      "intent_match_tags": [
+        "speak"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "speak"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.move",
+      "classification": "authored content",
+      "handler_id": "move",
+      "intent_match_tags": [
+        "move"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "move"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.present_item",
+      "classification": "authored content",
+      "handler_id": "present_item",
+      "intent_match_tags": [
+        "present_item"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "present_item"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.take_item",
+      "classification": "authored content",
+      "handler_id": "take_item",
+      "intent_match_tags": [
+        "take_item"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "take_item"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.transfer_item",
+      "classification": "authored content",
+      "handler_id": "transfer_item",
+      "intent_match_tags": [
+        "transfer_item"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "transfer_item"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.retrieve_lodged_item",
+      "classification": "authored content",
+      "handler_id": "retrieve_lodged_item",
+      "intent_match_tags": [
+        "retrieve_lodged_item"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "retrieve_lodged_item"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.use_key",
+      "classification": "authored content",
+      "handler_id": "use_key",
+      "intent_match_tags": [
+        "use_key"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "use_key"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.wait",
+      "classification": "authored content",
+      "handler_id": "wait",
+      "intent_match_tags": [
+        "wait"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "wait"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    },
+    {
+      "id": "action.accept_offer",
+      "classification": "authored content",
+      "handler_id": "accept_offer",
+      "intent_match_tags": [
+        "accept_offer"
+      ],
+      "argument_schema_id": "Intent",
+      "preconditions": [],
+      "check": {
+        "kind": "none",
+        "action": null,
+        "skill_id": null,
+        "difficulty": 0,
+        "defense_skill": "will",
+        "goal_tag": "accept_offer"
+      },
+      "cost_ticks": 1,
+      "permitted_stunt_ids": [],
+      "outcomes": {
+        "failure": "no_effect",
+        "minor_cost": "no_effect",
+        "success": "no_effect",
+        "style": "no_effect",
+        "optional_major_cost": null
+      },
+      "visibility_policy_id": "perception",
+      "reaction_policy_id": "authored"
+    }
+  ],
+  "aspect_templates": [
+    "momentary_opening",
+    "noisy_intrusion",
+    "jammed_portal",
+    "off_balance",
+    "focused",
+    "cover",
+    "burning"
+  ],
+  "consequence_catalog": {
+    "physical": [
+      "bruised",
+      "sprained_wrist",
+      "deep_bruising"
+    ],
+    "mental": [
+      "shaken",
+      "rattled_confidence",
+      "deep_distress"
+    ]
+  }
+}

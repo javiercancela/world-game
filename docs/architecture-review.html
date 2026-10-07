@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="A review of world-game's implemented architecture, its gameplay tradeoffs, and the decisions needed to match your goals.">
+  <title>world-game · Architecture review</title>
+  <style>
+    :root {
+      --paper: #faf9f5;
+      --surface: #fffefa;
+      --ink: #22352f;
+      --muted: #596960;
+      --line: #d8dfd7;
+      --accent: #256653;
+      --soft: #eaf1e9;
+      --amber: #835016;
+      --amber-soft: #f6eddd;
+      --code: #edf0e9;
+      --heading: Georgia, "Times New Roman", serif;
+      --body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #17221e;
+        --surface: #1e2c26;
+        --ink: #edf1e8;
+        --muted: #b8c5bb;
+        --line: #3b5144;
+        --accent: #a1d5b6;
+        --soft: #283d30;
+        --amber: #edd098;
+        --amber-soft: #3a3123;
+        --code: #2a3930;
+      }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.65 var(--body); }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .skip { position: absolute; left: 16px; top: -80px; background: var(--surface); padding: 10px 16px; z-index: 5; }
+    .skip:focus { top: 12px; }
+    .layout { max-width: 1320px; margin: auto; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 66px; padding: 46px 44px 64px; }
+    .sidebar { position: sticky; top: 36px; align-self: start; }
+    .brand { font-weight: 750; letter-spacing: -.04em; font-size: 22px; margin: 0; }
+    .subbrand { color: var(--muted); margin: 2px 0 28px; font-size: 13px; }
+    .contents { list-style: none; padding: 0; margin: 0; }
+    .contents li { border-top: 1px solid var(--line); }
+    .contents li:last-child { border-bottom: 1px solid var(--line); }
+    .contents a { display: flex; gap: 12px; padding: 12px 0; color: var(--muted); text-decoration: none; font-size: 14px; }
+    .contents a:hover, .contents a[aria-current="location"] { color: var(--accent); }
+    .contents .num { font: 12px/1.9 ui-monospace, monospace; }
+    .sidebar-note { margin-top: 24px; font-size: 12px; color: var(--muted); }
+    main { min-width: 0; max-width: 920px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .13em; font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 18px; }
+    h1, h2, h3 { line-height: 1.15; }
+    h1 { font: normal clamp(42px, 6vw, 70px)/1.06 var(--heading); letter-spacing: -.04em; margin: 0 0 22px; }
+    h2 { font: normal clamp(28px, 3.2vw, 38px)/1.15 var(--heading); letter-spacing: -.025em; margin: 0 0 20px; }
+    h3 { font-size: 18px; margin: 26px 0 12px; }
+    p { margin: 0 0 16px; }
+    .lede { max-width: 690px; font-size: 20px; line-height: 1.55; color: var(--muted); }
+    .metadata { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 12px; margin: 24px 0; }
+    .masthead { border-bottom: 1px solid var(--line); padding-bottom: 32px; }
+    .masthead-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .button { display: inline-block; text-decoration: none; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); padding: 9px 14px; font-size: 13px; }
+    .button.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .button:hover { border-color: var(--accent); }
+    section { padding-top: 46px; margin-top: 18px; border-top: 1px solid var(--line); }
+    section:first-of-type { border: 0; margin-top: 0; }
+    .section-label { color: var(--accent); font: 11px/1.5 ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+    .principle { border-left: 3px solid var(--accent); padding: 4px 0 4px 24px; margin: 26px 0; }
+    .principle strong { display: block; font: normal 28px/1.3 var(--heading); margin-bottom: 8px; }
+    .principle p { margin-bottom: 0; }
+    .note { border: 1px solid var(--line); border-radius: 8px; background: var(--soft); padding: 18px 22px; margin: 22px 0; }
+    .note p:last-child { margin-bottom: 0; }
+    .note.review { background: var(--amber-soft); color: var(--ink); border-color: var(--line); }
+    .note-title { font-size: 13px; color: var(--accent); display: block; margin-bottom: 6px; }
+    .review .note-title { color: var(--amber); }
+    .status { display: inline-block; font-size: 11px; font-weight: 650; padding: 2px 8px; background: var(--soft); color: var(--accent); border-radius: 4px; white-space: nowrap; }
+    .status.extension { color: var(--amber); background: var(--amber-soft); }
+    .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 12px; color: var(--muted); margin-top: 18px; }
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin: 24px 0; }
+    .columns h3 { margin-top: 0; }
+    ul, ol { padding-left: 22px; margin: 12px 0 20px; }
+    li { padding-left: 3px; margin-bottom: 8px; }
+    .table-wrap { overflow-x: auto; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    caption { text-align: left; color: var(--muted); font-size: 12px; padding-bottom: 12px; }
+    th { color: var(--muted); font-size: 12px; font-weight: 650; }
+    td, th { padding: 12px 12px 12px 0; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th:first-child { width: 25%; }
+    td:last-child, th:last-child { padding-right: 0; }
+    code { background: var(--code); border-radius: 3px; padding: 2px 5px; font: .86em/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 18px 0; padding: 18px 20px; border-radius: 6px; background: var(--code); font-size: 13px; line-height: 1.65; }
+    pre code { padding: 0; background: none; font-size: inherit; }
+    .source-line { font-size: 12px; color: var(--muted); margin-top: 20px; }
+    .source-line code { font-size: 11px; }
+    figure { margin: 24px 0; }
+    figcaption { font-size: 12px; color: var(--muted); margin-top: 14px; }
+    .diagram { display: grid; grid-template-columns: minmax(0, 1fr) 28px minmax(0, 2fr) 28px minmax(0, 1.05fr); align-items: stretch; gap: 0; }
+    .diagram-box { border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px; background: var(--surface); min-width: 0; }
+    .diagram-box.core { border: 2px solid var(--accent); background: var(--soft); }
+    .diagram-box h3 { margin: 0 0 8px; font-size: 16px; }
+    .diagram-box p { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+    .diagram-box p:last-child { margin: 0; }
+    .diagram-box code { font-size: 11px; }
+    .diagram-arrow { align-self: center; text-align: center; color: var(--accent); font-size: 23px; }
+    .engine-flow { list-style: none; padding: 0; margin: 12px 0 0; font-size: 12px; }
+    .engine-flow li { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+    .engine-flow span { color: var(--muted); margin-right: 8px; font: 11px ui-monospace, monospace; }
+    .diagram-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+    .diagram-inputs > div { border-top: 2px solid var(--line); padding-top: 12px; }
+    .diagram-inputs strong { font-size: 13px; }
+    .diagram-inputs p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .process { counter-reset: phase; list-style: none; padding: 0; margin: 24px 0; }
+    .process li { position: relative; padding: 0 0 22px 47px; margin: 0; border-left: 1px solid var(--line); margin-left: 14px; }
+    .process li:last-child { padding-bottom: 0; border-left-color: transparent; }
+    .process li::before { counter-increment: phase; content: counter(phase); position: absolute; top: 0; left: -15px; width: 29px; height: 29px; text-align: center; border-radius: 50%; background: var(--soft); border: 1px solid var(--line); color: var(--accent); font: 12px/27px ui-monospace, monospace; }
+    .process strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    .process p { font-size: 14px; color: var(--muted); margin: 0; }
+    .worked-turn { border-top: 2px solid var(--accent); border-bottom: 1px solid var(--line); padding: 20px 0; margin: 24px 0; }
+    .worked-turn blockquote { margin: 0 0 20px; font: 22px/1.45 var(--heading); }
+    .rolls { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+    .rolls h4 { margin: 0 0 8px; font-size: 13px; color: var(--accent); }
+    .rolls p { font-size: 14px; }
+    details { border-top: 1px solid var(--line); padding: 15px 0; }
+    details:last-child { border-bottom: 1px solid var(--line); }
+    summary { cursor: pointer; font-size: 14px; font-weight: 650; }
+    details > div { margin-top: 18px; }
+    .decision { border-top: 1px solid var(--line); padding: 22px 0; }
+    .decision h3 { margin: 0 0 10px; font-size: 17px; }
+    .decision p { font-size: 14px; color: var(--muted); }
+    .decision-fields { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 18px; }
+    label { display: block; font-size: 12px; font-weight: 650; }
+    label span { display: block; margin-bottom: 6px; }
+    select, textarea { width: 100%; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 10px; font-size: 14px; }
+    textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+    .review-status { color: var(--muted); font-size: 12px; min-height: 20px; margin-top: 12px; }
+    .review-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .sources { list-style: none; padding: 0; }
+    .sources li { border-top: 1px solid var(--line); padding: 12px 0; margin: 0; font-size: 14px; }
+    .sources small { display: block; color: var(--muted); margin-top: 4px; font-size: 12px; }
+    footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; font-size: 12px; color: var(--muted); }
+    .no-script { color: var(--amber); font-size: 13px; }
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 190px minmax(0, 1fr); gap: 34px; padding: 32px 28px; }
+      .diagram { grid-template-columns: 1fr; gap: 0; }
+      .diagram-arrow { transform: rotate(90deg); line-height: 1.4; }
+      .diagram-box { padding: 16px 20px; }
+    }
+    @media (max-width: 760px) {
+      .layout { display: block; padding: 24px 22px 40px; }
+      .sidebar { position: static; margin-bottom: 32px; }
+      .brand { display: inline; }
+      .subbrand { display: inline; margin-left: 12px; }
+      .contents { display: flex; flex-wrap: wrap; gap: 0 18px; margin-top: 16px; }
+      .contents li, .contents li:last-child { border: 0; }
+      .contents a { padding: 5px 0; font-size: 12px; }
+      .contents .num, .sidebar-note { display: none; }
+      .lede { font-size: 18px; }
+      section { padding-top: 32px; }
+      .columns, .rolls { grid-template-columns: 1fr; gap: 12px; }
+      .diagram-inputs { grid-template-columns: 1fr; gap: 10px; }
+      .decision-fields { grid-template-columns: 1fr; gap: 12px; }
+      textarea, select { font-size: 16px; }
+      th:first-child { width: 30%; }
+      td, th { font-size: 12px; padding-right: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      :root { --paper: white; --surface: white; --ink: #17251f; --muted: #46564d; --line: #c7cfc8; --accent: #225943; --soft: #f0f4ed; --amber: #6b4517; --amber-soft: #f8f1e7; --code: #f0f2ee; }
+      @page { size: A4; margin: 18mm; }
+      body { font-size: 10pt; line-height: 1.5; }
+      .layout { display: block; padding: 0; max-width: none; }
+      main { max-width: none; }
+      .sidebar, .skip, .masthead-actions, .review-actions, .review-status, .no-script { display: none; }
+      h1 { font-size: 38pt; }
+      h2 { font-size: 23pt; }
+      h3 { font-size: 12pt; }
+      .lede { font-size: 13pt; }
+      section { margin-top: 10px; padding-top: 25px; }
+      h2, h3, summary, .section-label { break-after: avoid; }
+      .note, .worked-turn, .decision, .diagram-box, tr, .process li { break-inside: avoid; }
+      .diagram { grid-template-columns: 1fr 20px 2fr 20px 1fr; }
+      .diagram-arrow { transform: none; }
+      .diagram-inputs { grid-template-columns: repeat(3, 1fr); }
+      .columns, .rolls { grid-template-columns: 1fr 1fr; }
+      .decision-fields { grid-template-columns: 160px 1fr; }
+      textarea { min-height: 60px; height: auto; }
+      a { color: var(--ink); }
+      .table-wrap { overflow: visible; }
+      th, td { font-size: 9pt; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to document</a>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Document navigation">
+      <p class="brand">world-game<span aria-hidden="true">.</span></p>
+      <p class="subbrand">Architecture / review edition</p>
+      <nav aria-label="Contents">
+        <ol class="contents">
+          <li><a href="#intent"><span class="num">01</span> Intent &amp; fit</a></li>
+          <li><a href="#architecture"><span class="num">02</span> System map</a></li>
+          <li><a href="#world"><span class="num">03</span> World &amp; knowledge</a></li>
+          <li><a href="#turn"><span class="num">04</span> A turn, end to end</a></li>
+          <li><a href="#creativity"><span class="num">05</span> Rules &amp; creativity</a></li>
+          <li><a href="#runtime"><span class="num">06</span> Runtime &amp; saves</a></li>
+          <li><a href="#boundaries"><span class="num">07</span> Limits &amp; next steps</a></li>
+          <li><a href="#decisions"><span class="num">08</span> Your review</a></li>
+          <li><a href="#sources"><span class="num">09</span> Sources &amp; evidence</a></li>
+        </ol>
+      </nav>
+      <p class="sidebar-note">Grounded in the current working tree.<br>Read it as a design to assess, with implementation limits made explicit.</p>
+    </aside>
+
+    <main id="main">
+      <header class="masthead">
+        <p class="eyebrow">Design review · playable v0.1</p>
+        <h1>Game architecture</h1>
+        <p class="lede">A conversational RPG with an authoritative world engine. Language models interpret and perform; typed state, rules, and recorded events keep the adventure consistent.</p>
+        <div class="metadata">
+          <span>Prepared 7 October 2026</span>
+          <span>Scope: current implementation + review decisions</span>
+          <span>Adventure: Gate at Dusk</span>
+        </div>
+        <p>This document explains how the game works and what the design means for the experience you can build. The goals below are inferred from the project notes and remain yours to confirm.</p>
+        <div class="masthead-actions">
+          <a class="button primary" href="#decisions">Review the design</a>
+          <button class="button" id="print-document" type="button" hidden>Print / save as PDF</button>
+        </div>
+        <div class="legend" aria-label="Status legend">
+          <span class="status">Implemented</span><span>Present in the code</span>
+          <span class="status extension">Proposed / deferred</span><span>Requires additional work</span>
+        </div>
+      </header>
+
+      <section id="intent" aria-labelledby="intent-title">
+        <p class="section-label">01 / Intent &amp; fit</p>
+        <h2 id="intent-title">What this design is aiming for</h2>
+        <p>One player explores an authored world through free-form English. Conversation, deception, exploration, items, promises, and conflict have persistent consequences. The first adventure asks Lea to recover a ledger and carry it outside the gate, with a scheduled threat at dusk.</p>
+        <div class="principle">
+          <strong>Models propose. The engine commits.</strong>
+          <p>A generated sentence becomes a mechanical fact only through a supported, validated event. World state survives independently of model memory or a conversation transcript.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Working assumptions about your goals — each is a review point, not a confirmed requirement.</caption>
+            <thead><tr><th scope="col">Likely goal</th><th scope="col">How the design supports it</th><th scope="col">What you should decide</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Natural conversation</th><td>A model maps different phrasings to typed attempts and voices NPC dialogue.</td><td>How much freedom should language imply when the available effects are finite?</td></tr>
+              <tr><th scope="row">A world that remembers</th><td>Inventory, beliefs, offers, promises, quests, and time are saved records.</td><td>Which consequences need to matter beyond one short adventure?</td></tr>
+              <tr><th scope="row">Characters with perspectives</th><td>Each actor receives a filtered view; false beliefs remain valid state.</td><td>Are authored reactions sufficient, or should NPCs independently pursue goals?</td></tr>
+              <tr><th scope="row">Tabletop-style choices</th><td>Fate actions, aspects, invokes, costs, harm, and concessions create explicit decisions.</td><td>How much rules detail and interruption should the player see?</td></tr>
+              <tr><th scope="row">Dependable local play</th><td>SQLite saves, durable choices, scripted offline mode, and a local model adapter.</td><td>Is a synchronous CLI the right first experience?</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note review">
+          <strong class="note-title">The main product decision</strong>
+          <p>The current design fits a small authored adventure with flexible conversation and reliable mechanics. An open-ended sandbox would need broader world-creation policies, more action coverage, and more independent NPC behavior.</p>
+        </div>
+      </section>
+
+      <section id="architecture" aria-labelledby="architecture-title">
+        <p class="section-label">02 / System map</p>
+        <h2 id="architecture-title">One process owns the game</h2>
+        <p>The Python application coordinates input, model calls, rules, and persistence synchronously. Model roles are separate requests with different contexts; they share the campaign's configured provider. No autonomous agent framework is needed.</p>
+        <figure aria-label="System architecture: player input enters the CLI, the coordinator resolves and validates events, SQLite stores the result, and committed output returns to the player. Story data and filtered model calls support resolution.">
+          <div class="diagram">
+            <div class="diagram-box">
+              <h3>Player &amp; CLI</h3>
+              <p>English actions, explicit choices, read-only commands.</p>
+              <p><code>cli.py</code></p>
+              <p>Committed output returns here, with factual fallback if narration fails.</p>
+            </div>
+            <div class="diagram-arrow" aria-hidden="true">→</div>
+            <div class="diagram-box core">
+              <h3>Authoritative game process</h3>
+              <p>The coordinator owns the lifecycle. Registered code owns legal effects.</p>
+              <ol class="engine-flow">
+                <li><span>01</span> Build perspective → interpret intent</li>
+                <li><span>02</span> Check legality → lock resolution plan</li>
+                <li><span>03</span> Resolve dice &amp; durable choices</li>
+                <li><span>04</span> Stage effects, reactions &amp; time</li>
+                <li><span>05</span> Validate &amp; reduce the event batch</li>
+              </ol>
+            </div>
+            <div class="diagram-arrow" aria-hidden="true">→</div>
+            <div class="diagram-box">
+              <h3>SQLite campaign</h3>
+              <p>Atomic commit of events, snapshot, interaction completion, and fallback output.</p>
+              <p>Pending choices and model-call records are also durable.</p>
+              <p><code>persistence/sqlite.py</code></p>
+            </div>
+          </div>
+          <div class="diagram-inputs">
+            <div><strong>Story package → rules &amp; context</strong><p>Pinned definitions, profiles, dialogue, scenes, quests, and effect templates.</p></div>
+            <div><strong>Saved state ↔ coordinator</strong><p>World facts, current phase, recorded dice, legal choices, and resource balances.</p></div>
+            <div><strong>Filtered requests ↔ models</strong><p>Interpreter before resolution; NPC voice before commit; optional narrator after commit.</p></div>
+          </div>
+          <figcaption>Read from left to right. Persistent gameplay changes pass through the reducer and the repository's commit boundary. Read-only commands bypass model generation.</figcaption>
+        </figure>
+        <details>
+          <summary>Component responsibilities and code locations</summary>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">Component</th><th scope="col">Responsibility</th><th scope="col">Location under src/world_game/</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Domain contracts</th><td>Strict schemas for world state, intent, proposals, choices, and events.</td><td><code>domain/</code></td></tr>
+                <tr><th scope="row">Coordinator</th><td>Phase order, budgets, retries, pending choices, and presentation.</td><td><code>engine/turns.py</code></td></tr>
+                <tr><th scope="row">Perspective queries</th><td>Visible entities, actor beliefs, known aspects, observations, and recent speech.</td><td><code>engine/queries.py</code></td></tr>
+                <tr><th scope="row">Rules &amp; handlers</th><td>Permissions, action plans, outcomes, Fate arithmetic, conflict, and schedules.</td><td><code>engine/actions.py</code>, <code>fate_rules.py</code>, <code>choices.py</code>, <code>conflicts.py</code>, <code>scenes.py</code>, <code>scheduler.py</code></td></tr>
+                <tr><th scope="row">Events &amp; validation</th><td>Stage ordered events; check causality, state invariants, and hashes.</td><td><code>engine/builder.py</code>, <code>reducer.py</code>, <code>validation.py</code></td></tr>
+                <tr><th scope="row">Story loading</th><td>Load and validate the packaged adventure and its references.</td><td><code>story/</code>, <code>data/stories/gate_at_dusk/</code></td></tr>
+                <tr><th scope="row">Model adapters</th><td>Generate schema-constrained role outputs, then validate them.</td><td><code>models/</code>, <code>models/prompts/</code></td></tr>
+                <tr><th scope="row">Persistence</th><td>Snapshots, journal, pending work, replay, export/import, recovery.</td><td><code>persistence/</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+        <p class="source-line">Code: <a href="../src/world_game/engine/turns.py">Coordinator</a> · <a href="../src/world_game/persistence/sqlite.py">SQLiteRepository</a> · <a href="../src/world_game/engine/reducer.py">Reducer</a></p>
+      </section>
+
+      <section id="world" aria-labelledby="world-title">
+        <p class="section-label">03 / World &amp; knowledge</p>
+        <h2 id="world-title">State is explicit, perspective is personal</h2>
+        <div class="columns">
+          <div><h3>Definitions</h3><p>The immutable story package defines the starting world, rules, profiles, and authored possibilities. A campaign saves its exact package and compatibility identifiers.</p></div>
+          <div><h3>Runtime state</h3><p>The world snapshot records what has changed. Inventory lists, visible scenes, and model contexts are derived views, rebuilt from these records.</p></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Record</th><th scope="col">Meaning</th><th scope="col">Example</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Entity + components</th><td>Stable ID with identity, placement, actor, item, portal, or Fate data.</td><td>The key is physically inside Lea's inventory because its container is Lea.</td></tr>
+              <tr><th scope="row">Canonical proposition</th><td>A story fact with true, false, or unknown truth and provenance.</td><td>“Lea is expected at court” is false.</td></tr>
+              <tr><th scope="row">Knowledge &amp; belief</th><td>What an actor has observed or learned, and their stance toward a proposition.</td><td>Oren can believe the invitation claim while it remains false.</td></tr>
+              <tr><th scope="row">Conversation &amp; offer</th><td>Participants, topic, speech, and explicit pending terms.</td><td>Sen offers her key in return for a promise to return it.</td></tr>
+              <tr><th scope="row">Commitment &amp; relationship</th><td>Persistent obligations, fulfillment or breach, and bounded directed trust.</td><td>Breaking the key promise reduces Sen's trust in Lea.</td></tr>
+              <tr><th scope="row">Quest, clock &amp; schedule</th><td>Progress, terminal result, ticks, and named due effects.</td><td>The tick-20 retrieval can remove a ledger still in the records room.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Placement is the single source for possession; inventory is computed from it. Portals connect locations through endpoints. Validation rejects cycles, missing references, invalid resources, and inconsistent grounding.</p>
+        <h3>Information is filtered before a model sees it</h3>
+        <p>The interpreter receives the player's view. An NPC receives its own observations, beliefs, profile, and heard speech. The narrator receives the player's committed view and permitted event references. Another actor's private records are excluded from these projections.</p>
+        <p>This supports deception and discovery: saying something does not make it true, a listener can be mistaken, and a player's guess does not automatically become character knowledge. The human transcript is separate from explicit in-world knowledge.</p>
+        <div class="note review">
+          <strong class="note-title">Reliability limit</strong>
+          <p>Filtering and structured disclosure checks reduce leaks. Free-form prose can still imply an unsupported fact; semantic consistency needs live evaluation. The engine does not promote that prose into canonical state.</p>
+        </div>
+        <p class="source-line">Code: <a href="../src/world_game/domain/state.py">State records</a> · <a href="../src/world_game/engine/queries.py">Perspective projection</a> · <a href="../src/world_game/engine/validation.py">Invariants</a></p>
+      </section>
+
+      <section id="turn" aria-labelledby="turn-title">
+        <p class="section-label">04 / A turn, end to end</p>
+        <h2 id="turn-title">Resolve an attempt before describing it</h2>
+        <ol class="process">
+          <li><strong>Receive or resume</strong><p>The CLI checks for pending work. Commands such as /look, /sheet, and /inventory read saved state without advancing time or calling a model.</p></li>
+          <li><strong>Interpret within the player's perspective</strong><p>The model returns an Intent or clarification. References must come from the permitted view. Ambiguity is resolved before spending gameplay resources.</p></li>
+          <li><strong>Check legality and lock the plan</strong><p>Code selects a registered rule and checks possession, proximity, tools, locks, and policy. The plan fixes action, skill, opposition, bonuses, costs, and available consequences.</p></li>
+          <li><strong>Roll and pause for decisions</strong><p>Engine-owned dice are recorded before display. Invokes, deliberate rerolls, harm allocation, and optional costs update a durable pending resolution.</p></li>
+          <li><strong>Stage the consequences</strong><p>Apply player effects and bounded NPC voice responses to a working state. Advance ticks, process due handlers, evaluate quests, and apply scene boundaries and observations.</p></li>
+          <li><strong>Validate and commit</strong><p>Validate the event batch and resulting state. One SQLite transaction stores the journal, new snapshot and RNG state, completed interaction, and factual output.</p></li>
+          <li><strong>Present the committed result</strong><p>The narrator may add prose around the factual outcome. Failed or rejected narration uses the saved fallback. Presentation failure cannot undo the committed action.</p></li>
+        </ol>
+        <div class="worked-turn">
+          <p class="eyebrow">Worked example · actual offline fixture</p>
+          <blockquote>“I show Oren the seal and say the court expects me. Let me in.”</blockquote>
+          <div class="rolls">
+            <div>
+              <h4>Initial result: a provisional tie</h4>
+              <p>Deceive 4 + Official Bearing 2 + dice −2 = effort 4, against difficulty 4. The tie would allow entry but schedule verification.</p>
+              <p>The game can be saved and reloaded here with the same dice, stakes, and choices.</p>
+            </div>
+            <div>
+              <h4>Player choice: a paid +2 invoke</h4>
+              <p>Lea spends one Fate point to invoke her concept aspect. Effort becomes 6; margin +2 is success. After the invoke window closes, the batch commits.</p>
+              <p>The gate opens; Oren believes the claim; Lea has 2 Fate points; tick advances to 1. The invitation remains false, and verification is not scheduled.</p>
+            </div>
+          </div>
+        </div>
+        <p><strong>Technical retries preserve play.</strong> They retain recorded dice and successful calls. A purchased reroll is a separate game choice. Cancellation is available before revealed dice or accepted resource-changing choices; afterward, quitting saves the pending decision.</p>
+        <p class="source-line">Code: <a href="../src/world_game/domain/intents.py">PendingResolution</a> · <a href="../src/world_game/engine/turns.py">Turn lifecycle</a> · <a href="../tests/fixtures/demo-success.txt">Worked-turn transcript</a></p>
+      </section>
+
+      <section id="creativity" aria-labelledby="creativity-title">
+        <p class="section-label">05 / Rules &amp; creativity</p>
+        <h2 id="creativity-title">Freedom has an authored boundary</h2>
+        <p>The current ruleset is <code>fate-condensed-cli-v1</code>: a bounded adaptation with four Fate actions, four −1/0/+1 dice, aspects, free and paid invokes, stress, consequences, recovery, and concessions. The implementation specification replaces the original architecture's illustrative d20 rules.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Model role</th><th scope="col">Current authority</th><th scope="col">Status</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Interpreter</th><td>Proposes one supported action, speech, references, or a clarification. Cannot declare success.</td><td><span class="status">Implemented</span></td></tr>
+              <tr><th scope="row">NPC performer</th><td>Voices an already-settled authored response from its perspective. Cannot add an offer or alter the settled response. At most two utterances are voiced per action.</td><td><span class="status">Implemented</span></td></tr>
+              <tr><th scope="row">Narrator</th><td>Describes a committed result, preserving factual fallback text and using permitted references. Its extra prose is not world authority.</td><td><span class="status">Implemented</span></td></tr>
+              <tr><th scope="row">Adjudicator</th><td>Intended to select bounded rulings for unusual attempts. Schema and prompt exist, but the current coordinator does not call this role.</td><td><span class="status extension">Extension point</span></td></tr>
+              <tr><th scope="row">Decision provider / Jev</th><td>A typed protocol and scripted adapter exist. No live Jev integration or live semantic-relevance route is enabled.</td><td><span class="status extension">Deferred</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="columns">
+          <div>
+            <h3>What can vary today</h3>
+            <ul>
+              <li>English phrasing, speech, and NPC voice.</li>
+              <li>Approach within supported methods: bluff, honest collateral, discover a concern, use a key, pick a lock, or fight.</li>
+              <li>Grounded advantages and supported environmental effects, such as wedging a carried object in a portal.</li>
+              <li>New claim records with unknown truth, when admitted through the supported path.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>What remains engine-owned</h3>
+            <ul>
+              <li>Legal targets, reachability, possession, skill and stunt eligibility.</li>
+              <li>Difficulty, recorded dice, outcomes, Fate-point payments, and harm.</li>
+              <li>Transfers, disclosures, promises, schedules, and quest transitions.</li>
+              <li>Which persistent entities or effects can be created. Authored exceptions, such as a compel receipt, are explicit.</li>
+            </ul>
+          </div>
+        </div>
+        <p>Unsupported mechanics cannot be invented just because a model describes them. The handler and effect allowlists deliberately constrain useful new objects, exits, abilities, NPCs, and mystery solutions.</p>
+        <details>
+          <summary>Fate profile and action coverage</summary>
+          <div>
+            <p>The profile uses nine merged skills, three passive +2 stunts, finite advantage and consequence templates, event compels, authored scene/session transitions, and nonlethal defeat. NPC invoke spending follows a deterministic policy and a shared scene GM pool.</p>
+            <p>The registered handlers cover speech, social overcome, advantage creation/discovery, movement, item presentation/taking/transfer/retrieval, keys, lockpicking, attacks, treatment, waiting, and offer acceptance. Free-form input ultimately maps to this finite surface.</p>
+            <p>These choices shape pacing and available solutions. Expanding the action registry adds real gameplay capability; changing prompts alone does not.</p>
+          </div>
+        </details>
+        <p class="source-line">Code: <a href="../src/world_game/domain/intents.py">Handler contract</a> · <a href="../src/world_game/engine/actions.py">Action policies</a> · <a href="../src/world_game/engine/intents_registry.py">Effect allowlist</a> · <a href="../src/world_game/models/decisions.py">Scripted decision adapter</a></p>
+      </section>
+
+      <section id="runtime" aria-labelledby="runtime-title">
+        <p class="section-label">06 / Runtime &amp; saves</p>
+        <h2 id="runtime-title">A local core with replaceable model adapters</h2>
+        <p><strong>Stack:</strong> Python 3.12+, uv, Pydantic 2, Typer, Rich, standard-library SQLite, and the OpenAI Python SDK for both live adapters. The deterministic reducer performs no model calls, network access, clock reads, or fresh dice draws.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Provider</th><th scope="col">Use</th><th scope="col">Operational boundary</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Scripted</th><td>Offline play, reproducible demonstrations, and tests.</td><td>No network or credentials. Understands the authored adventure vocabulary.</td></tr>
+              <tr><th scope="row">Local <span class="status">Default</span></th><td>Free-form input through an OpenAI-compatible Chat Completions endpoint.</td><td>Default is the existing Bonsai 2 27B server at <code>http://127.0.0.1:8080/v1</code>. The game connects to it; it does not start or load the model.</td></tr>
+              <tr><th scope="row">OpenAI</th><td>Cloud generation through the Responses API.</td><td>Requires an explicit model and API key. Provider choice does not silently change on failure.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>All live outputs pass through strict wire schemas and domain validation before game admission. Defaults are a 30-second request timeout, eight total provider attempts, 120 seconds of provider work per action, and an 8,000-token conservative context allowance. Waiting for the player consumes no provider budget.</p>
+        <p>The synchronous input loop waits during generation. Successful calls are cached with interaction, role, context, prompt, schema, and provider identity. Environment settings configure the endpoint/model; a campaign preserves its chosen provider across saves.</p>
+        <h3>What the campaign database retains</h3>
+        <p>Each campaign has its own SQLite database, normally under <code>~/.local/share/world-game/campaigns/</code>. It retains the exact story package, snapshots, committed event batches and ordered events, pending interactions, choice responses, model-call records, and presentation records.</p>
+        <div class="columns">
+          <div><h3>Durable gameplay</h3><p>A pending turn stores the locked plan, staged events, dice, provisional balances, current choice, and revision. Reload resumes that decision. No database write transaction remains open during player input or a model call.</p></div>
+          <div><h3>Reproducible history</h3><p>Offline replay applies recorded events and compares state hashes with saved snapshots. Export/import preserves the package, world, pending decisions, dialogue, and RNG continuation. Replay never needs the model to repeat its answer.</p></div>
+        </div>
+        <div class="note">
+          <strong class="note-title">Useful architectural guarantees</strong>
+          <p>Committed input and choice identities prevent duplicate application; version checks reject stale work. Saving or loading does not refresh resources. Recovery creates a new database. Portable exports contain canonical secrets and the full story, while excluding API credentials and model-call logs.</p>
+        </div>
+        <p class="source-line">Code: <a href="../src/world_game/config.py">Provider defaults</a> · <a href="../src/world_game/models/local_provider.py">Local adapter</a> · <a href="../src/world_game/models/openai_provider.py">Cloud adapter</a> · <a href="../src/world_game/persistence/migrations/001_initial.sql">Database schema</a></p>
+      </section>
+
+      <section id="boundaries" aria-labelledby="boundaries-title">
+        <p class="section-label">07 / Limits &amp; next steps</p>
+        <h2 id="boundaries-title">Where your goals could outgrow v0.1</h2>
+        <p>The world model and event path are reusable foundations. The current implementation is still closely tied to Gate at Dusk: action code references Lea, Oren, Sen, the ledger quest, and specific story outcomes. A second adventure would require refactoring as well as new data.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>Potential extension directions. These are recommendations for discussion, not promised features.</caption>
+            <thead><tr><th scope="col">If your goal is…</th><th scope="col">Current limitation</th><th scope="col">Next architectural work</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Broad improvisation</th><td>Finite methods and templates; no active model adjudicator.</td><td>Add evaluated bounded adjudication, more grounded effects, and explicit policies for introducing canon.</td></tr>
+              <tr><th scope="row">Independent NPC lives</th><td>Authored reactions, conflict actions, and scheduled handlers; no general autonomous goal planner.</td><td>Add scheduled NPC intentions with per-actor perspective and budgets, through the same event path.</td></tr>
+              <tr><th scope="row">Many authored stories</th><td>Reusable records but adventure-specific action and quest logic.</td><td>Move story-specific selectors and consequences into validated configuration or registered story handlers; prove the split with a second story.</td></tr>
+              <tr><th scope="row">Long campaigns</th><td>A snapshot per batch; recent context is bounded; history queries scan the journal.</td><td>Measure save/context growth; add indexes, retrieval, and summaries with source provenance when needed.</td></tr>
+              <tr><th scope="row">Faster, smoother play</th><td>Synchronous generation and explicit mechanical choice windows.</td><td>Measure role latency and interruptions; tune display and call policy; consider async orchestration.</td></tr>
+              <tr><th scope="row">Graphical or multiplayer play</th><td>One local player and CLI; no networking or shared-session protocol.</td><td>Expose an application command/view boundary for a UI. Multiplayer also needs actor authority, concurrency, and synchronized choices.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>A practical sequence, conditional on your review</h3>
+        <ol>
+          <li><strong>Confirm the experience:</strong> authored adventure or sandbox, how much Fate is visible, and desired NPC autonomy.</li>
+          <li><strong>Evaluate actual live play:</strong> interpretation, response time, character knowledge, narration, and unsupported requests.</li>
+          <li><strong>Prove reusable boundaries:</strong> build a small second story and remove adventure-specific coupling revealed by it.</li>
+          <li><strong>Expand the chosen dimension:</strong> richer actions, NPC planning, long-term consequences, or a new interface.</li>
+        </ol>
+        <p>Multiplayer, procedural campaigns, character-creation UI, advancement, spell systems, general contests/challenges, vector retrieval, autonomous agent frameworks, and live Jev integration are deferred in the specification.</p>
+        <p class="source-line">Evidence: <a href="implementation-plan.md">Required scope and implementation record</a> · <a href="../src/world_game/engine/actions.py">Adventure coupling in actions.py</a> · <a href="../src/world_game/engine/queries.py">Perspective and history bounds</a></p>
+      </section>
+
+      <section id="decisions" aria-labelledby="decisions-title">
+        <p class="section-label">08 / Your review</p>
+        <h2 id="decisions-title">Does this support the game you want?</h2>
+        <p>Start with the experience you want, then mark the decisions that need to change. The form is a local review aid; it does not modify the game.</p>
+        <p id="storage-explanation" class="source-line">With JavaScript enabled, notes are saved in this browser when local storage is available. Export your review to keep a portable copy. Nothing is sent to a server.</p>
+        <noscript><p class="no-script">The architecture is fully readable without JavaScript. Automatic note saving and export need JavaScript; you can copy your answers manually.</p></noscript>
+        <form id="review-form">
+          <label for="review-goals"><span>Describe the game you want: what should a good session feel like?</span></label>
+          <textarea id="review-goals" name="goals" rows="3" placeholder="For example: a character-driven mystery where dialogue changes relationships and unexpected approaches usually have meaningful consequences."></textarea>
+
+          <div class="decision" data-decision="authority">
+            <h3>1. Keep engine authority over the world</h3>
+            <p>Models propose language and supported attempts; only validated events change gameplay. This is the strongest foundation for continuity, saves, and explainable consequences.</p>
+            <div class="decision-fields">
+              <label for="authority-verdict"><span>Your view</span><select id="authority-verdict" name="authority-verdict"><option value="undecided">Undecided</option><option value="keep">Keep this choice</option><option value="change">Change this choice</option><option value="discuss">Discuss tradeoffs</option></select></label>
+              <label for="authority-note"><span>What would you change or clarify?</span><textarea id="authority-note" name="authority-note" rows="2"></textarea></label>
+            </div>
+          </div>
+          <div class="decision" data-decision="freedom">
+            <h3>2. Begin with authored, bounded improvisation</h3>
+            <p>Current actions and consequences are finite. Decide whether to deepen this adventure style or make broader improvisation the next priority.</p>
+            <div class="decision-fields">
+              <label for="freedom-verdict"><span>Your view</span><select id="freedom-verdict" name="freedom-verdict"><option value="undecided">Undecided</option><option value="keep">Keep this choice</option><option value="change">Change this choice</option><option value="discuss">Discuss tradeoffs</option></select></label>
+              <label for="freedom-note"><span>What attempts should the game support?</span><textarea id="freedom-note" name="freedom-note" rows="2"></textarea></label>
+            </div>
+          </div>
+          <div class="decision" data-decision="rules">
+            <h3>3. Use the bounded Fate profile and explicit choices</h3>
+            <p>Aspects and post-roll decisions give the player mechanical control, with interruptions for invokes, costs, and harm. Decide how visible and frequent those decisions should be.</p>
+            <div class="decision-fields">
+              <label for="rules-verdict"><span>Your view</span><select id="rules-verdict" name="rules-verdict"><option value="undecided">Undecided</option><option value="keep">Keep this choice</option><option value="change">Change this choice</option><option value="discuss">Discuss tradeoffs</option></select></label>
+              <label for="rules-note"><span>What should the player see or decide?</span><textarea id="rules-note" name="rules-note" rows="2"></textarea></label>
+            </div>
+          </div>
+          <div class="decision" data-decision="npcs">
+            <h3>4. Start with authored NPC reactions</h3>
+            <p>NPC perspectives are explicit, but their main responses are selected by story mechanics. More independent agency needs planning and scheduling beyond the current voice layer.</p>
+            <div class="decision-fields">
+              <label for="npcs-verdict"><span>Your view</span><select id="npcs-verdict" name="npcs-verdict"><option value="undecided">Undecided</option><option value="keep">Keep this choice</option><option value="change">Change this choice</option><option value="discuss">Discuss tradeoffs</option></select></label>
+              <label for="npcs-note"><span>How independently should characters act?</span><textarea id="npcs-note" name="npcs-note" rows="2"></textarea></label>
+            </div>
+          </div>
+          <div class="decision" data-decision="interface">
+            <h3>5. Keep a local, single-player CLI first</h3>
+            <p>One process and SQLite are easy to inspect and recover. The input loop waits for model generation; a graphical or shared experience introduces new requirements.</p>
+            <div class="decision-fields">
+              <label for="interface-verdict"><span>Your view</span><select id="interface-verdict" name="interface-verdict"><option value="undecided">Undecided</option><option value="keep">Keep this choice</option><option value="change">Change this choice</option><option value="discuss">Discuss tradeoffs</option></select></label>
+              <label for="interface-note"><span>What interface and pace do you want?</span><textarea id="interface-note" name="interface-note" rows="2"></textarea></label>
+            </div>
+          </div>
+          <div class="decision" data-decision="growth">
+            <h3>6. Prove reuse with a second small adventure</h3>
+            <p>A second story would test whether the core really separates mechanics from content, before adding open-world generation or a much larger campaign.</p>
+            <div class="decision-fields">
+              <label for="growth-verdict"><span>Your view</span><select id="growth-verdict" name="growth-verdict"><option value="undecided">Undecided</option><option value="keep">Keep this choice</option><option value="change">Change this choice</option><option value="discuss">Discuss tradeoffs</option></select></label>
+              <label for="growth-note"><span>What should the next milestone prove?</span><textarea id="growth-note" name="growth-note" rows="2"></textarea></label>
+            </div>
+          </div>
+          <label for="review-summary"><span>Overall assessment and highest-priority changes</span></label>
+          <textarea id="review-summary" name="summary" rows="3"></textarea>
+          <div class="review-actions" hidden id="review-actions">
+            <button class="button primary" id="export-review" type="button">Export review (.md)</button>
+            <button class="button" id="clear-review" type="button">Clear answers</button>
+          </div>
+          <p id="review-status" class="review-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="sources" aria-labelledby="sources-title">
+        <p class="section-label">09 / Sources &amp; evidence</p>
+        <h2 id="sources-title">What this review is based on</h2>
+        <p>This review reconciles the current source with the project documents. The implementation specification takes precedence over the architecture's earlier examples; the code and README include a newer local provider default.</p>
+        <ul class="sources">
+          <li><a href="../README.md">README</a><small>Current play modes, commands, provider setup, persistence behavior, and Fate profile.</small></li>
+          <li><a href="world-architecture.md">World representation and turn resolution</a><small>Original design intent: authority, state, beliefs, improvisation, perspectives, and replay.</small></li>
+          <li><a href="implementation-plan.md">Implementation specification</a><small>Concrete Fate profile, contracts, scope, acceptance adventure, and implementation departures.</small></li>
+          <li><a href="../src/world_game/engine/turns.py">Coordinator and model role calls</a><small>Actual phase order, retries, NPC voice restrictions, commit boundary, and narration checks.</small></li>
+          <li><a href="../src/world_game/persistence/sqlite.py">SQLite persistence</a><small>Transactions, pending work, replay verification, presentation, export/import, and recovery.</small></li>
+          <li><a href="../tests/integration/test_extensions.py">Extension tests</a> · <a href="../tests/integration/test_persistence.py">Persistence tests</a> · <a href="../tests/integration/test_providers.py">Provider tests</a><small>Executable scenarios for grounded effects, durable choices, atomicity, and model admission boundaries.</small></li>
+          <li><a href="../tests/fixtures/demo-success.txt">Success transcript</a> · <a href="../tests/fixtures/demo-failure.txt">Failure transcript</a><small>Checked-in offline evidence of complete adventure paths and post-roll save/reload.</small></li>
+        </ul>
+        <div class="note review">
+          <strong class="note-title">What is and is not verified here</strong>
+          <p>The repository contains offline unit, property, and integration tests and an opt-in 30-case live evaluation runner. The implementation record says the initial live evaluation was not run. This document does not establish current live model quality or claim a fresh game test run.</p>
+          <p>The live corpus checks interpretation, initial disclosures, and engine admission/replay with scripted reactions. It does not evaluate live NPC or narrator quality; those need separate playtesting.</p>
+        </div>
+        <p class="source-line">The HTML document works offline. Relative source links resolve when it stays in this repository's <code>docs/</code> directory. Review notes are stored separately in the browser and can be exported.</p>
+      </section>
+      <footer>world-game · Architecture review · Prepared from the working tree on 7 October 2026.<br>Proposed extensions are discussion points; no game behavior is changed by this document.</footer>
+    </main>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+      const form = document.getElementById('review-form');
+      const status = document.getElementById('review-status');
+      const fields = [...form.querySelectorAll('select, textarea')];
+      const storageKey = 'world-game:architecture-review:2026-10-07:v1';
+      const labels = { undecided: 'Undecided', keep: 'Keep this choice', change: 'Change this choice', discuss: 'Discuss tradeoffs' };
+      let saveTimer;
+
+      const collect = () => Object.fromEntries(fields.map(field => [field.name, field.value]));
+      const restore = data => {
+        if (!data || typeof data !== 'object' || Array.isArray(data)) return;
+        fields.forEach(field => {
+          if (typeof data[field.name] !== 'string') return;
+          if (field.tagName === 'SELECT' && !Object.hasOwn(labels, data[field.name])) return;
+          field.value = data[field.name];
+        });
+      };
+      const save = () => {
+        saveTimer = undefined;
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(collect()));
+          status.textContent = 'Answers saved in this browser. Export a copy to share your review.';
+        } catch {
+          status.textContent = 'Browser storage is unavailable. Use Export review to keep your answers.';
+        }
+      };
+
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          restore(JSON.parse(saved));
+          status.textContent = 'Saved review restored from this browser.';
+        } else {
+          status.textContent = 'No review answers recorded yet.';
+        }
+      } catch {
+        status.textContent = 'Browser storage is unavailable or unreadable. Export your answers to keep them.';
+      }
+
+      form.addEventListener('submit', event => event.preventDefault());
+      form.addEventListener('input', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(save, 450);
+      });
+      form.addEventListener('change', () => { clearTimeout(saveTimer); save(); });
+      window.addEventListener('pagehide', () => {
+        if (saveTimer) { clearTimeout(saveTimer); save(); }
+      });
+
+      document.getElementById('export-review').addEventListener('click', () => {
+        clearTimeout(saveTimer);
+        saveTimer = undefined;
+        const data = collect();
+        const lines = ['# world-game architecture review', '', 'Architecture baseline: 7 October 2026', `Review exported: ${new Date().toISOString()}`, '', '## My goals', '', data.goals.trim() || '(Not recorded)', ''];
+        form.querySelectorAll('[data-decision]').forEach(decision => {
+          const key = decision.dataset.decision;
+          lines.push(`## ${decision.querySelector('h3').textContent}`, '', `Decision: ${labels[data[`${key}-verdict`]]}`, '', data[`${key}-note`].trim() || '(No notes)', '');
+        });
+        lines.push('## Overall assessment and priorities', '', data.summary.trim() || '(Not recorded)', '');
+        const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'world-game-architecture-review.md';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        status.textContent = 'Review export requested. Check your browser downloads.';
+      });
+
+      document.getElementById('clear-review').addEventListener('click', () => {
+        if (!window.confirm('Clear all your review answers in this browser?')) return;
+        clearTimeout(saveTimer);
+        saveTimer = undefined;
+        form.reset();
+        try { localStorage.removeItem(storageKey); } catch {}
+        status.textContent = 'Review answers cleared.';
+      });
+
+      document.getElementById('review-actions').hidden = false;
+      const printButton = document.getElementById('print-document');
+      printButton.hidden = false;
+      printButton.addEventListener('click', () => window.print());
+      let closedDetails = [];
+      window.addEventListener('beforeprint', () => {
+        closedDetails = [...document.querySelectorAll('details:not([open])')];
+        closedDetails.forEach(detail => { detail.open = true; });
+        fields.filter(field => field.tagName === 'TEXTAREA').forEach(field => {
+          field.style.height = 'auto';
+          field.style.height = `${field.scrollHeight + 4}px`;
+        });
+      });
+      window.addEventListener('afterprint', () => {
+        closedDetails.forEach(detail => { detail.open = false; });
+        fields.forEach(field => { field.style.height = ''; });
+      });
+
+      if ('IntersectionObserver' in window) {
+        const links = [...document.querySelectorAll('.contents a')];
+        const observer = new IntersectionObserver(entries => {
+          const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (!visible.length) return;
+          links.forEach(link => {
+            if (link.hash === `#${visible[0].target.id}`) link.setAttribute('aria-current', 'location');
+            else link.removeAttribute('aria-current');
+          });
+        }, { rootMargin: '-10% 0px -65% 0px', threshold: 0 });
+        document.querySelectorAll('main > section').forEach(section => observer.observe(section));
+      }
+    })();
+  </script>
+</body>
+</html>

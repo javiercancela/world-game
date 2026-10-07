@@ -1,0 +1,89 @@
+Gate at Dusk — offline success demonstration
+> I show Oren the seal and say the court expects me. Let me in.
+Pending interaction (provisional; world effects are not committed).
+Goal: gain_entry. Stakes: Entry may be refused or verified.
+Provisional: overcome / deceive; dice [-1, -1, 0, 0]; stunt +2, invokes +0; 
+effort 4 vs 4; margin 0: tie.
+Fate points: 3; GM pool: 1.
+Invoke a known relevant aspect, or /pass to accept this result.
+1. Accept the current result [pass]
+2. Borrowed Uniform, Convincing Manner: +2 (paid) 
+[invoke:aspect:lea:concept:paid:bonus]
+3. Borrowed Uniform, Convincing Manner: replace four dice (paid) 
+[invoke:aspect:lea:concept:paid:reroll]
+4. Sen Once Saved My Life: +2 (paid) [invoke:aspect:lea:relationship:paid:bonus]
+5. Sen Once Saved My Life: replace four dice (paid) 
+[invoke:aspect:lea:relationship:paid:reroll]
+6. Cannot Leave a Debt Unpaid: +2 (paid) [invoke:aspect:lea:trouble:paid:bonus]
+7. Cannot Leave a Debt Unpaid: replace four dice (paid) 
+[invoke:aspect:lea:trouble:paid:reroll]
+[Saved and reloaded at the post-roll choice.]
+Pending interaction (provisional; world effects are not committed).
+Goal: gain_entry. Stakes: Entry may be refused or verified.
+Provisional: overcome / deceive; dice [-1, -1, 0, 0]; stunt +2, invokes +0; 
+effort 4 vs 4; margin 0: tie.
+Fate points: 3; GM pool: 1.
+Invoke a known relevant aspect, or /pass to accept this result.
+1. Accept the current result [pass]
+2. Borrowed Uniform, Convincing Manner: +2 (paid) 
+[invoke:aspect:lea:concept:paid:bonus]
+3. Borrowed Uniform, Convincing Manner: replace four dice (paid) 
+[invoke:aspect:lea:concept:paid:reroll]
+4. Sen Once Saved My Life: +2 (paid) [invoke:aspect:lea:relationship:paid:bonus]
+5. Sen Once Saved My Life: replace four dice (paid) 
+[invoke:aspect:lea:relationship:paid:reroll]
+6. Cannot Leave a Debt Unpaid: +2 (paid) [invoke:aspect:lea:trouble:paid:bonus]
+7. Cannot Leave a Debt Unpaid: replace four dice (paid) 
+[invoke:aspect:lea:trouble:paid:reroll]
+> /invoke aspect:lea:concept bonus
+Pending interaction (provisional; world effects are not committed).
+Goal: gain_entry. Stakes: Entry may be refused or verified.
+Provisional: overcome / deceive; dice [-1, -1, 0, 0]; stunt +2, invokes +2; 
+effort 6 vs 4; margin 2: success.
+Fate points: 2; GM pool: 1.
+Response opportunity: invoke again or /pass.
+1. Accept the current result [pass]
+2. Sen Once Saved My Life: +2 (paid) [invoke:aspect:lea:relationship:paid:bonus]
+3. Sen Once Saved My Life: replace four dice (paid) 
+[invoke:aspect:lea:relationship:paid:reroll]
+4. Cannot Leave a Debt Unpaid: +2 (paid) [invoke:aspect:lea:trouble:paid:bonus]
+5. Cannot Leave a Debt Unpaid: replace four dice (paid) 
+[invoke:aspect:lea:trouble:paid:reroll]
+> /pass
+Lea invokes Borrowed Uniform, Convincing Manner for +2 (paid).
+Final: overcome / deceive; dice [-1, -1, 0, 0]; stunt +2, invokes +2; effort 6 
+vs 4; margin 2: success.
+Oren: The seal looks proper. Go through.
+> Go to the courtyard
+You move to Courtyard.
+> Hello Sen
+Sen: Lea! I am glad you came.
+> Ask Sen about the ledger
+Sen: The ledger shows that the deputy redirected relief supplies. Please 
+preserve it.
+> Ask Sen for help with the key
+Sen: Take my key, if you promise to return it.
+> /choose accept
+Offer accepted; the transfer and promise are committed together.
+> /choose accept
+Compel accepted: gain one Fate point and carry Sen's receipt for Oren.
+> Go outside to the gatehouse
+You move to Gatehouse.
+> Give Oren the receipt
+Archive Receipt moves to Oren.
+> Go to the courtyard
+You move to Courtyard.
+> Use the key to unlock the records door
+The key unlocks and opens the records door.
+> Enter the records office
+You move to Records Office.
+> Take the ledger
+Missing Ledger moves to Lea.
+> Go to the courtyard
+You move to Courtyard.
+> Give Sen the key
+Records Key moves to Sen.
+> Go outside to the gatehouse
+You move to Gatehouse.
+You carry the recovered ledger outside the gate. The mission is complete.
+Replay verified: 16 committed batches; ending=success.

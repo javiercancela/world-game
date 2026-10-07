@@ -1,0 +1,58 @@
+{
+  "success": {
+    "dice": [
+      [
+        -1,
+        -1,
+        0,
+        0
+      ]
+    ],
+    "inputs": [
+      "I show Oren the seal and say the court expects me. Let me in.",
+      "@reload",
+      "/invoke aspect:lea:concept bonus",
+      "/pass",
+      "Go to the courtyard",
+      "Hello Sen",
+      "Ask Sen about the ledger",
+      "Ask Sen for help with the key",
+      "/choose accept",
+      "/choose accept",
+      "Go outside to the gatehouse",
+      "Give Oren the receipt",
+      "Go to the courtyard",
+      "Use the key to unlock the records door",
+      "Enter the records office",
+      "Take the ledger",
+      "Go to the courtyard",
+      "Give Sen the key",
+      "Go outside to the gatehouse"
+    ]
+  },
+  "failure": {
+    "dice": [],
+    "inputs": [
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait",
+      "wait"
+    ]
+  }
+}
